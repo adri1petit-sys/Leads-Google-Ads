@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laforêt Saint-Avertin | L'Expertise Stratégique</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        laforet: {
+                            navy: '#183C89', // Primary Brand
+                            cyan: '#00AFED', // Action
+                            bg: '#F5F5F7',   // Apple Surface
+                        }
+                    },
+                    boxShadow: {
+                        'apple': '0 4px 24px -1px rgba(0, 0, 0, 0.04)',
+                        'apple-hover': '0 8px 32px -4px rgba(0, 0, 0, 0.08)',
+                        'glow': '0 0 20px rgba(0, 175, 237, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0?dev",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
+            "framer-motion": "https://esm.sh/framer-motion@10.16.4?dev&deps=react@18.2.0,react-dom@18.2.0",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0?dev&deps=react@18.2.0"
+        }
+    }
+    </script>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #F5F5F7;
+            color: #183C89;
+        }
+        /* Refined Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F5F5F7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Hidden Netlify Form for Detection -->
+    <!-- Contains explicit netlify attributes and matching fields for the React form -->
+    <form name="contact" method="POST" netlify data-netlify="true" netlify-honeypot="bot-field" hidden>
+        <input type="hidden" name="form-name" value="contact" />
+        <input type="hidden" name="bot-field" />
+        <input type="text" name="type" />
+        <input type="text" name="address" />
+        <input type="text" name="name" />
+        <input type="tel" name="phone" />
+    </form>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { motion, AnimatePresence } from 'framer-motion';
+        import { 
+            Phone, 
+            MapPin, 
+            Home, 
+            Building2, 
+            ArrowRight,
+            CheckCircle2,
+            Users,
+            Globe2,
+            Map,
+            Star,
+            ShieldCheck,
+            Award,
+            TrendingUp,
+            Network
+        } from 'lucide-react';
+
+        // --- ANIMATION PRIMITIVES ---
+        const FADE_IN = {
+            hidden: { opacity: 0, y: 20 },
+            visible: { 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+            }
+        };
+
+        const SECTION_ANIM = {
+            hidden: { opacity: 0, y: 24 },
+            visible: { 
+                opacity: 1, 
+                y: 0, 
+                transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+            }
+        };
+
+        const STAGGER_CONTAINER = {
+            visible: { transition: { staggerChildren: 0.1 } }
+        };
+
+        // --- DATA ---
+        const googleReviews = [
+            {
+                author: "Alzina SAVEY",
+                rating: 5,
+                comment: "Nous avons contacté l’agence Laforêt de Saint-Avertin afin d’obtenir une estimation de notre bien immobilier, sans projet de transaction à court terme. Malgré cela nous avons obtenu un RDV très rapide. Et avons reçu Vincent, qui s’est montré très professionnel, a consacré le temps nécessaire à la visite de notre maison, toujours à l’écoute et très sympathique de surcroît. Comme promis, 4 jours après cette visite, une estimation au plus juste nous était remise directement à l’agence sous forme de book et transmise en format PDF. Un grand merci à M. PETIT et son équipe (Vincent tout particulièrement), nul doute que nous ferons appel à l’agence Laforêt de Saint-Avertin si besoin."
+            },
+            {
+                author: "Francis DUPONT",
+                rating: 5,
+                comment: "Très bonne rencontre avec l'agence pour un avis de valeur. Le premier contact téléphonique a été très sympathique, suivi d'une rencontre très chaleureuse et professionnelle. Efficacité et compétence associées à une extrême gentillesse et une rare politesse font de cette entreprise familiale une agence immobilière de toute confiance, que je prends plaisir à vous conseiller… n'hésitez pas à franchir la porte de cette agence je vous la recommande."
+            },
+            {
+                author: "Claude.. ADR",
+                rating: 5,
+                comment: "Une agence familiale, réactive, disponible et à l'écoute du besoin du client. Nous avons reçu un accueil chaleureux dans leurs locaux afin de faire les présentations et d'exposer le projet. Des visites et contre-visites ont été réalisées avec Vincent, Adrien et Olivier. Un second accueil chaleureux en agence afin d'expliquer les termes du compromis avec Olivier, qui assure un suivi régulier jusqu'à la signature chez le notaire. Merci beaucoup ! Bonne continuation à la famille Petit !"
+            },
+            {
+                author: "Ugo Clerici",
+                rating: 5,
+                comment: "Une belle équipe familiale dynamique, sympathique et hyper efficace. Deux biens vendus rapidement en quelques semaines et « au prix ». Bravo à tous ! Je recommande vivement."
+            },
+            {
+                author: "Christophe Fontaine",
+                rating: 5,
+                comment: "Nous tenons à remercier chaleureusement l'agence LaFORÊT, en particulier Vincent et Olivier pour leur accompagnement remarquable lors de l’achat de notre maison. Dès notre première rencontre, nous avons été séduits par leur écoute attentive et leur expertise pointue du marché local. Olivier a su nous guider avec une connaissance approfondie du terrain, Vincent a été d’une réactivité et d’une disponibilité sans faille à chaque étape. Leur professionnalisme, leur transparence et leur bienveillance ont facilité notre recherche très spécifique et en temps contraint, en une expérience sereine : nous nous sommes sentis soutenus et conseillés avec une grande rigueur. Un immense merci à eux pour leur engagement et leur accompagnement de chaque instant. Si vous cherchez une agence compétente, sérieuse et à taille humaine, l'équipe familiale de l'agence LaFORÊT Saint-Avertin répondra à vos attentes."
+            },
+            {
+                author: "Seb Decout",
+                rating: 5,
+                comment: "Nous avions besoin de conseils. L'agence La Forêt nous a très bien reçus et très bien conseillés en nous donnant beaucoup de renseignements très pratiques et utiles."
+            },
+            {
+                author: "Claire",
+                rating: 5,
+                comment: "Voilà une agence immobilière de toute confiance. C'est une entreprise familiale où tout le monde se complète de la prospection jusqu'à la vente. Quel plaisir de trouver des interlocuteurs aussi compétents et chacun a sa place dans l'agence. Un bel avenir leur est promis. Merci à toute l'équipe d'avoir mené de main de maître la vente de notre appartement. Bravo."
+            },
+            {
+                author: "Patrick Guillemin",
+                rating: 5,
+                comment: "Très professionnel, compétent, réactif et agréable. Merci à vous."
+            },
+            {
+                author: "Amélie Durand",
+                rating: 5,
+                comment: "Merci à toute l’équipe pour leur gentillesse, leur professionnalisme et leur disponibilité, je recommande pour tous les futurs locataires !"
+            },
+            {
+                author: "Chayane Charaf",
+                rating: 5,
+                comment: "Je remercie toute l’équipe de l’agence pour son professionnalisme. Elle s’adapte à toutes les situations. Je recommande vivement."
+            },
+            {
+                author: "Sébastien L",
+                rating: 5,
+                comment: "Sérieux et à l’écoute de leurs clients, équipe familiale agréable et professionnelle. Pour vos projets, n’hésitez pas : ils sont de très bons conseils."
+            },
+            {
+                author: "Younès BOUNAAJA",
+                rating: 5,
+                comment: "Une entreprise familiale extraordinaire : ils ont réussi à vendre mon appartement en moins d’une semaine alors que seul j’ai attendu pratiquement un an. Je recommande énormément, une gentillesse au top et une réactivité excellente. Merci beaucoup."
+            },
+            {
+                author: "Céline M",
+                rating: 5,
+                comment: "Un accompagnement parfait ! Une vraie qualité d'écoute, une réactivité impressionnante et une disponibilité permanente. On refera appel à vous quel que soit notre projet immobilier, les yeux fermés ! Merci à toute la Team Petit."
+            },
+            {
+                author: "Elsa Verdu",
+                rating: 1,
+                comment: "Très, très mauvaise expérience, en aucun cas, ne peut recommander cette agence… malgré leur air affable, on n'hésite pas, avec leurs contacts, par tous les moyens, à vous refiler une patate chaude. Alors frappez à d'autres portes… si le bonheur existe, ce n'est pas là. Signalement au siège du franchiseur !!!"
+            },
+            {
+                author: "Pierre L",
+                rating: 1,
+                comment: "Merci de votre réactivité et de votre professionnalisme tout au long de nos échanges."
+            },
+            {
+                author: "Alexa Caland",
+                rating: 5,
+                comment: "Une équipe au top ! Une agence professionnelle ! Merci pour votre accompagnement durant notre vente !"
+            },
+            {
+                author: "Navez Loane",
+                rating: 5,
+                comment: "Vente de notre maison réalisée rapidement grâce à leur professionnalisme, leur disponibilité et leur écoute. Le sérieux et les qualités humaines des membres de l'agence sont très appréciables. Je recommande vivement !"
+            },
+            {
+                author: "Kevin",
+                rating: 5,
+                comment: "Bien en gestion locative. Agence très sérieuse. Prestations de qualité."
+            },
+            {
+                author: "Flo A",
+                rating: 5,
+                comment: "Dans le cadre d'un achat, nous avons été accompagnés par M. Petit de l'Agence LaFORÊT. M. Petit a été très disponible et très professionnel. Tous nos échanges se sont déroulés dans la sincérité et la simplicité. Compte tenu qu'aujourd'hui tous les documents se font en ligne, il a su accompagner les vendeurs dans les démarches d'ordre informatique, ce qui a aisément contribué à l'efficacité de la vente. Tant du point de vue vendeur qu'acheteur, et ce jusqu'à l'acte chez le notaire, nous vous encourageons à prendre contact avec cette agence."
+            },
+            {
+                author: "Lucie de Prat",
+                rating: 5,
+                comment: "Un grand merci à toute l’équipe de l'agence LaFORÊT Saint-Avertin ! Grâce à leur écoute, leur disponibilité et leurs précieux conseils, nous avons trouvé la maison de nos rêves. Tout s’est déroulé avec simplicité et sérénité, du premier contact jusqu’à la signature. Leur professionnalisme est accompagné d’une vraie dimension humaine, ce qui fait toute la différence. Nous recommandons cette agence les yeux fermés !"
+            }
+        ];
+
+        // --- COMPONENTS ---
+
+        const Navbar = () => (
+            <motion.nav 
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/60"
+            >
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <img 
+                            src="https://i.postimg.cc/PJbhCjdD/logo-devant-flocage.png" 
+                            alt="Laforêt" 
+                            className="h-8 md:h-10 w-auto object-contain" 
+                        />
+                        <div className="hidden md:flex flex-col">
+                            <span className="text-sm font-bold text-laforet-navy tracking-tight">AGENCE FAMILIALE</span>
+                            <span className="text-xs text-gray-500 font-medium">Expertise Saint-Avertin</span>
+                        </div>
+                    </div>
+                    <a 
+                        href="tel:0246466380"
+                        className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-laforet-navy/5 text-laforet-navy font-semibold text-sm hover:bg-laforet-navy hover:text-white transition-all duration-300"
+                    >
+                        <Phone size={16} className="text-laforet-navy group-hover:text-white transition-colors" />
+                        <span className="hidden sm:inline">02 46 46 63 80</span>
+                    </a>
+                </div>
+            </motion.nav>
+        );
+
+        const TrustPill = ({ icon: Icon, text }) => (
+            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm text-sm font-medium text-gray-600">
+                <Icon size={14} className="text-laforet-cyan" />
+                {text}
+            </div>
+        );
+
+        const Hero = ({ onStart }) => (
+            <section className="pt-32 pb-20 px-6 text-center">
+                <motion.div 
+                    initial="hidden"
+                    animate="visible"
+                    variants={STAGGER_CONTAINER}
+                    className="max-w-4xl mx-auto flex flex-col items-center"
+                >
+                    <motion.div variants={FADE_IN} className="flex flex-wrap justify-center gap-3 mb-10">
+                        <TrustPill icon={Star} text="4.9/5 sur Google" />
+                        <TrustPill icon={CheckCircle2} text="+300 projets réussis" />
+                        <TrustPill icon={MapPin} text="Expertise Locale 2026" />
+                    </motion.div>
+
+                    <motion.h1 
+                        variants={FADE_IN}
+                        className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#183C89] to-[#183C89] tracking-tight mb-6 leading-[1.1] pb-1"
+                    >
+                        Rencontrez un expert LaFORÊT pour 
+                        une visite technique à domicile.
+                    </motion.h1>
+
+                    <motion.p 
+                        variants={FADE_IN}
+                        className="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-12 font-medium"
+                    >
+                        Agence familiale référente à Saint-Avertin. <br className="hidden md:block"/>
+                        Analyse terrain, stratégie de vente, offerte, sans engagement.
+                    </motion.p>
+
+                    <motion.button 
+                        variants={FADE_IN}
+                        onClick={onStart}
+                        className="group relative inline-flex items-center gap-3 bg-laforet-navy text-white px-10 py-5 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
+                    >
+                        <span className="relative z-10">Prendre rendez-vous</span>
+                        <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" />
+                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                    </motion.button>
+                </motion.div>
+            </section>
+        );
+
+        const FormEngine = () => {
+            const [step, setStep] = useState(1);
+            // Added bot-field to state
+            const [data, setData] = useState({ type: '', address: '', name: '', phone: '', 'bot-field': '' });
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const next = () => setStep(s => s + 1);
+            
+            // Auto-advance logic for Step 1
+            const handleTypeSelect = (type) => {
+                setData({ ...data, type });
+                next();
+            };
+
+            const handleSubmit = async () => {
+                if (!data.name || !data.phone) return;
+                
+                setIsSubmitting(true);
+                
+                // Form Encoding Helper
+                const encode = (data) => {
+                    return Object.keys(data)
+                        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+                        .join("&");
+                }
+
+                try {
+                    await fetch("/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: encode({ "form-name": "contact", ...data })
+                    });
+                    setStep(4);
+                } catch (error) {
+                    alert("Une erreur est survenue lors de l'envoi. Merci de réessayer.");
+                    console.error(error);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            return (
+                <section id="audit" className="px-6 py-12">
+                    <motion.div 
+                        layout
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.6 }}
+                        className="w-full max-w-2xl mx-auto bg-white rounded-[2.5rem] shadow-apple p-8 md:p-12 border border-gray-100 relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gray-100">
+                            <motion.div 
+                                className="h-full bg-laforet-cyan"
+                                initial={{ width: "0%" }}
+                                animate={{ width: `${(step / 3) * 100}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                            {/* STEP 1: PROPERTY TYPE */}
+                            {step === 1 && (
+                                <motion.div
+                                    key="step1"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-8"
+                                >
+                                    <div className="text-center space-y-2">
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 1/3</span>
+                                        <h3 className="text-3xl font-bold text-laforet-navy">Quel type de bien ?</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <button 
+                                            onClick={() => handleTypeSelect('Maison')}
+                                            className="group relative p-8 rounded-3xl border-2 border-gray-50 hover:border-laforet-cyan/30 hover:bg-laforet-cyan/5 transition-all duration-300 text-left"
+                                        >
+                                            <div className="w-14 h-14 bg-blue-50 text-laforet-navy rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                                                <Home size={28} />
+                                            </div>
+                                            <span className="block text-xl font-bold text-laforet-navy">Maison</span>
+                                            <span className="text-sm text-gray-400 font-medium">Villa, Pavillon...</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => handleTypeSelect('Appartement')}
+                                            className="group relative p-8 rounded-3xl border-2 border-gray-50 hover:border-laforet-cyan/30 hover:bg-laforet-cyan/5 transition-all duration-300 text-left"
+                                        >
+                                            <div className="w-14 h-14 bg-blue-50 text-laforet-navy rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                                                <Building2 size={28} />
+                                            </div>
+                                            <span className="block text-xl font-bold text-laforet-navy">Appartement</span>
+                                            <span className="text-sm text-gray-400 font-medium">Studio, T2, Loft...</span>
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* STEP 2: ADDRESS */}
+                            {step === 2 && (
+                                <motion.div
+                                    key="step2"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-8"
+                                >
+                                    <div className="text-center space-y-2">
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 2/3</span>
+                                        <h3 className="text-3xl font-bold text-laforet-navy">Où se situe le bien ?</h3>
+                                        <p className="text-gray-500">Pour identifier le micro-marché de votre quartier.</p>
+                                    </div>
+                                    
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-laforet-cyan transition-colors" />
+                                        <input 
+                                            autoFocus
+                                            type="text"
+                                            name="address"
+                                            placeholder="Adresse exacte en Touraine"
+                                            className="w-full pl-14 pr-6 py-6 bg-gray-50 border-2 border-transparent rounded-2xl text-lg font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                            value={data.address}
+                                            onChange={(e) => setData({ ...data, address: e.target.value })}
+                                            onKeyDown={(e) => e.key === 'Enter' && data.address && next()}
+                                        />
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={next}
+                                        disabled={!data.address}
+                                        className="w-full bg-laforet-navy text-white font-bold py-5 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-laforet-cyan transition-colors shadow-lg shadow-laforet-navy/20"
+                                    >
+                                        Valider mon adresse
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* STEP 3: CONTACT */}
+                            {step === 3 && (
+                                <motion.div
+                                    key="step3"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-8"
+                                >
+                                    <div className="text-center space-y-2">
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Dernière étape</span>
+                                        <h3 className="text-3xl font-bold text-laforet-navy">Recevoir mon audit</h3>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <input 
+                                            type="text"
+                                            name="name"
+                                            placeholder="Prénom et Nom"
+                                            className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                            value={data.name}
+                                            onChange={(e) => setData({ ...data, name: e.target.value })}
+                                        />
+                                        <input 
+                                            type="tel"
+                                            name="phone"
+                                            placeholder="Téléphone mobile"
+                                            className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                            value={data.phone}
+                                            onChange={(e) => setData({ ...data, phone: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <button 
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting || !data.name || !data.phone}
+                                        className="w-full bg-laforet-cyan text-white font-bold py-5 rounded-2xl hover:bg-laforet-navy transition-colors shadow-glow hover:shadow-lg transform hover:-translate-y-0.5 duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    >
+                                        {isSubmitting ? 'Envoi en cours...' : 'Demander mon audit stratégique'}
+                                    </button>
+
+                                    <p className="text-center text-xs text-gray-400 flex items-center justify-center gap-1.5">
+                                        <ShieldCheck size={14} /> Vos données sont protégées et confidentielles.
+                                    </p>
+                                </motion.div>
+                            )}
+
+                            {/* SUCCESS */}
+                            {step === 4 && (
+                                <motion.div
+                                    key="success"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="text-center py-12"
+                                >
+                                    <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-[bounce_1s_ease-in-out_1]">
+                                        <CheckCircle2 size={48} />
+                                    </div>
+                                    <h3 className="text-3xl font-bold text-laforet-navy mb-4">Demande enregistrée.</h3>
+                                    <p className="text-gray-500 text-lg max-w-sm mx-auto">
+                                        Votre conseiller dédié Saint-Avertin étudie votre dossier. Vous serez contacté sous 24h.
+                                    </p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                </section>
+            );
+        };
+
+        const TeamCard = ({ photo, name, role, desc }) => (
+            <motion.div 
+                variants={FADE_IN}
+                className="group p-8 rounded-3xl bg-[#F9FAFB] hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-apple-hover transition-all duration-500"
+            >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
+                    <div className="relative">
+                        <img 
+                            src={photo} 
+                            alt={name} 
+                            className="w-20 h-20 object-cover rounded-2xl shadow-sm group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute -bottom-2 -right-2 bg-white p-1.5 rounded-full shadow-sm">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 className="text-xl font-bold text-laforet-navy">{name}</h4>
+                        <p className="text-sm font-semibold text-laforet-cyan uppercase tracking-wider mb-1">{role}</p>
+                    </div>
+                </div>
+                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+            </motion.div>
+        );
+
+        const TeamSection = () => (
+            <motion.section 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.25 }}
+                variants={SECTION_ANIM}
+                className="py-32 px-6 bg-white border-t border-gray-100"
+            >
+                <div className="max-w-7xl mx-auto">
+                    <div className="max-w-3xl mb-16">
+                        <motion.div variants={FADE_IN} className="inline-flex items-center gap-2 px-3 py-1 bg-laforet-navy/5 rounded-full text-xs font-bold text-laforet-navy mb-6 tracking-wide uppercase">
+                            <Users size={12} /> Agence Familiale
+                        </motion.div>
+                        <motion.h2 variants={FADE_IN} className="text-4xl md:text-5xl font-bold text-laforet-navy mb-6 tracking-tight leading-[1.1]">
+                            Un accompagnement humain,<br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#183C89] to-[#00AFED]">structuré et transparent.</span>
+                        </motion.h2>
+                        <motion.p variants={FADE_IN} className="text-xl text-gray-500 leading-relaxed max-w-2xl">
+                            Chaque membre de l'équipe apporte une expertise spécifique pour sécuriser votre projet, de l'estimation jusqu'à la signature définitive.
+                        </motion.p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <TeamCard 
+                            name="Olivier" 
+                            role="Franchisé" 
+                            photo="https://i.postimg.cc/qvCXZQ65/LF2025-26-2.jpg"
+                            desc="30 ans de direction dans le bâtiment. Il cadre les mandats, sécurise les dossiers et anticipe les risques techniques. Une maîtrise admin/juridique pour une sérénité totale jusqu’à l’acte."
+                        />
+                        <TeamCard 
+                            name="Hélène" 
+                            role="Agent Commercial" 
+                            photo="https://i.postimg.cc/PfRDsYj9/LF2025-24-2.jpg"
+                            desc="30 ans d'expérience bancaire. Elle orchestre le back-office, valide les financements acquéreurs et assure un suivi client d'une rigueur absolue."
+                        />
+                        <TeamCard 
+                            name="Vincent" 
+                            role="Agent Commercial" 
+                            photo="https://i.postimg.cc/k4h2C3kz/LF2025-18.jpg"
+                            desc="Expert en négociation internationale. Il maximise le net vendeur grâce à une mise en marché percutante. Co-fondateur du Saint-Avertin Run Club."
+                        />
+                        <TeamCard 
+                            name="Adrien" 
+                            role="Agent Commercial" 
+                            photo="https://i.postimg.cc/ThvY2RQD/LF2025-20-2.jpg"
+                            desc="Spécialiste marketing digital. Il sublime votre bien (photo/vidéo) pour capter les meilleurs acquéreurs instantanément. Co-fondateur du Saint-Avertin Run Club."
+                        />
+                    </div>
+                </div>
+            </motion.section>
+        );
+
+        const StatCard = ({ icon: Icon, value, label, sub }) => (
+            <motion.div 
+                variants={FADE_IN}
+                className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-apple-hover hover:-translate-y-1 transition-all duration-300"
+            >
+                <div className="w-16 h-16 bg-laforet-navy/5 rounded-full flex items-center justify-center mb-6 text-laforet-navy">
+                    <Icon size={32} strokeWidth={1.5} />
+                </div>
+                <span className="text-4xl font-extrabold text-laforet-navy mb-2 tracking-tight">{value}</span>
+                <span className="text-lg font-bold text-gray-900 mb-2 relative">
+                    {label}
+                    <span className="absolute -bottom-1 left-0 w-full h-1 bg-laforet-cyan/20 rounded-full"></span>
+                </span>
+                <span className="text-sm text-gray-500">{sub}</span>
+            </motion.div>
+        );
+
+        const NetworkSection = () => (
+            <motion.section 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.25 }}
+                variants={SECTION_ANIM}
+                className="py-24 px-6 bg-[#F5F5F7] border-y border-gray-200"
+            >
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl md:text-5xl font-bold text-laforet-navy mb-6 tracking-tight">
+                            La puissance du réseau Laforêt.
+                        </h2>
+                        <p className="text-xl text-gray-500 font-medium leading-relaxed">
+                            Un ancrage local fort, soutenu par l’un des réseaux immobiliers les plus reconnus de France pour amplifier votre visibilité.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StatCard 
+                            icon={Network} 
+                            value="720" 
+                            label="Agences" 
+                            sub="Maillage national dense"
+                        />
+                        <StatCard 
+                            icon={Users} 
+                            value="4 800" 
+                            label="Collaborateurs" 
+                            sub="Force de vente partagée"
+                        />
+                        <StatCard 
+                            icon={Award} 
+                            value="N°1" 
+                            label="Confiance" 
+                            sub="Marque préférée des Français"
+                        />
+                        <StatCard 
+                            icon={TrendingUp} 
+                            value="30 000" 
+                            label="Ventes / an" 
+                            sub="Volume de transactions"
+                        />
+                    </div>
+                </div>
+            </motion.section>
+        );
+
+        const RadarIllustration = () => {
+             // Coordinates based on relative geography from Tours (50% 50%)
+             // North is Top 0%, South is Top 100%
+             // West is Left 0%, East is Left 100%
+             const communes = [
+                // North / North West
+                { name: "Fondettes", top: "25%", left: "25%" },
+                { name: "Saint-Cyr-sur-Loire", top: "30%", left: "45%" },
+                { name: "Rochecorbon", top: "32%", left: "65%" },
+                { name: "Vouvray", top: "28%", left: "80%" },
+                
+                // West
+                { name: "Saint-Genouph", top: "52%", left: "15%" },
+                { name: "La Riche", top: "48%", left: "35%" },
+
+                // East (Loire Axis)
+                { name: "Saint-Pierre-des-Corps", top: "48%", left: "60%" },
+                { name: "La Ville-aux-Dames", top: "42%", left: "75%" },
+                { name: "Montlouis-sur-Loire", top: "45%", left: "88%" },
+
+                // South West
+                { name: "Joué-lès-Tours", top: "62%", left: "35%" },
+                { name: "Ballan-Miré", top: "68%", left: "20%" },
+
+                // South
+                { name: "Chambray-lès-Tours", top: "72%", left: "48%" },
+                { name: "Montbazon", top: "85%", left: "42%" },
+                { name: "Veigné", top: "88%", left: "55%" },
+
+                // South East (Cher Axis)
+                { name: "Saint-Avertin", top: "60%", left: "58%" },
+                { name: "Larçay", top: "63%", left: "72%" }, 
+                { name: "Véretz", top: "66%", left: "85%" },
+                { name: "Esvres", top: "82%", left: "70%" },
+            ];
+
+            return (
+                <div className="relative w-full aspect-square max-w-xl mx-auto flex items-center justify-center font-sans">
+                     {/* Concentric Circles (Background) */}
+                    {[1, 2, 3].map((i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 1.5, delay: i * 0.2, ease: "easeOut" }}
+                            className="absolute border border-laforet-navy/5 rounded-full"
+                            style={{ 
+                                width: `${i * 35}%`, 
+                                height: `${i * 35}%`,
+                            }}
+                        />
+                    ))}
+
+                    {/* Center: TOURS */}
+                    <motion.div 
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                        className="absolute z-20 flex flex-col items-center justify-center bg-laforet-cyan w-24 h-24 rounded-full shadow-glow border-4 border-white"
+                    >
+                        <span className="text-white font-extrabold text-lg tracking-wider">TOURS</span>
+                    </motion.div>
+
+                    {/* Communes */}
+                    {communes.map((city, idx) => (
+                        <motion.div
+                            key={city.name}
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 + (idx * 0.05), duration: 0.5 }}
+                            className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                            style={{ top: city.top, left: city.left }}
+                        >
+                            <div className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm border border-gray-100 hover:border-laforet-cyan/30 hover:shadow-md transition-all duration-300 cursor-default group">
+                                <span className="text-[11px] md:text-xs font-semibold text-laforet-navy/80 group-hover:text-laforet-navy whitespace-nowrap">
+                                    {city.name}
+                                </span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            );
+        };
+
+        const LocalInfluenceSection = () => (
+            <motion.section 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.25 }}
+                variants={SECTION_ANIM}
+                className="py-24 px-6 bg-white overflow-hidden"
+            >
+                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-laforet-navy/5 rounded-full text-xs font-bold text-laforet-navy mb-6 tracking-wide uppercase">
+                            <Map size={12} /> Zone d'influence
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-laforet-navy mb-6 leading-tight">
+                            La Touraine,<br/> nous la connaissons par cœur.
+                        </h2>
+                        <p className="text-lg text-gray-500 leading-relaxed mb-8">
+                            Implantés en Touraine depuis 25 ans, nous connaissons chaque commune, chaque micro-marché, les habitants, les commerces, les dynamiques locales et les prix réellement signés.
+                        </p>
+                        <ul className="space-y-4">
+                            {['Estimation ultra-précise par quartier', 'Base de données acquéreurs active', 'Connaissance des projets d\'urbanisme'].map((item, i) => (
+                                <li key={i} className="flex items-center gap-3 text-laforet-navy font-medium">
+                                    <CheckCircle2 size={20} className="text-laforet-cyan" />
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-[3rem] p-8 border border-gray-100 shadow-inner relative">
+                        <RadarIllustration />
+                    </div>
+                </div>
+            </motion.section>
+        );
+
+        const ReviewCard = ({ review }) => {
+            const initials = review.author
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+
+            return (
+                <div className="w-[300px] md:w-[400px] p-8 bg-white rounded-[2rem] shadow-sm border border-gray-100 flex-shrink-0 mx-4 flex flex-col justify-between select-none hover:shadow-apple-hover transition-shadow duration-300 h-full">
+                    <div>
+                        <div className="flex gap-1 mb-6">
+                            {[...Array(5)].map((_, i) => (
+                                <Star 
+                                    key={i} 
+                                    size={18} 
+                                    className={`${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`} 
+                                    strokeWidth={i < review.rating ? 0 : 1.5}
+                                />
+                            ))}
+                        </div>
+                        <p className="text-gray-600 italic text-base leading-relaxed mb-8 font-medium">
+                            "{review.comment}"
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-4 mt-auto pt-6 border-t border-gray-50">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-laforet-cyan to-[#009bd1] text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0">
+                            {initials}
+                        </div>
+                        <div>
+                            <p className="font-bold text-laforet-navy text-base">{review.author}</p>
+                            <p className="text-xs text-gray-400 font-medium flex items-center gap-1">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-3 opacity-60" />
+                                Avis vérifié
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const GoogleReviewsSection = () => {
+            // Duplicate the array for seamless looping
+            const loopReviews = [...googleReviews, ...googleReviews];
+
+            return (
+                <section className="py-24 bg-[#F5F5F7] border-t border-gray-200 overflow-hidden relative">
+                    <style>{`
+                        @keyframes marquee {
+                            0% { transform: translateX(0); }
+                            100% { transform: translateX(-50%); }
+                        }
+                        .animate-marquee {
+                            animation: marquee 120s linear infinite;
+                        }
+                        .animate-marquee:hover {
+                            animation-play-state: paused;
+                        }
+                    `}</style>
+                    
+                    <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-100 rounded-full text-xs font-bold text-laforet-navy mb-6 shadow-sm uppercase tracking-wider"
+                        >
+                            <Star size={12} className="fill-laforet-navy" /> Satisfaction Client
+                        </motion.div>
+                        <motion.h2 
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                            className="text-4xl md:text-5xl font-bold text-laforet-navy mb-4 tracking-tight"
+                        >
+                            Avis Google
+                            <span className="block h-1.5 w-24 bg-laforet-cyan/20 rounded-full mx-auto mt-4"></span>
+                        </motion.h2>
+                        <motion.p 
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.2 }}
+                            className="text-xl text-gray-500 font-medium"
+                        >
+                            Ils nous ont fait confiance.
+                        </motion.p>
+                    </div>
+
+                    <div className="relative w-full">
+                        <div className="flex w-max animate-marquee py-10">
+                            {loopReviews.map((review, index) => (
+                                <ReviewCard key={index} review={review} />
+                            ))}
+                        </div>
+                        {/* Gradients for smooth fade at edges */}
+                        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#F5F5F7] to-transparent pointer-events-none z-10" />
+                        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#F5F5F7] to-transparent pointer-events-none z-10" />
+                    </div>
+                </section>
+            );
+        };
+
+        const Footer = () => (
+            <footer className="bg-white py-12 text-center text-sm text-gray-400 border-t border-gray-200">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p>&copy; 2025 Laforêt Saint-Avertin. Tous droits réservés.</p>
+                    <div className="flex gap-6">
+                        <a href="#" className="hover:text-laforet-navy transition-colors">Mentions Légales</a>
+                        <a href="#" className="hover:text-laforet-navy transition-colors">Politique de Confidentialité</a>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        const App = () => {
+            const formRef = useRef(null);
+
+            const scrollToForm = () => {
+                const element = document.getElementById('audit');
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            return (
+                <div className="min-h-screen">
+                    <Navbar />
+                    <Hero onStart={scrollToForm} />
+                    <FormEngine />
+                    
+                    {/* NEW SECTIONS */}
+                    <TeamSection />
+                    <NetworkSection />
+                    <LocalInfluenceSection />
+                    
+                    <GoogleReviewsSection />
+                    <Footer />
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
