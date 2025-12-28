@@ -81,9 +81,19 @@
         <input type="hidden" name="form-name" value="contact" />
         <input type="hidden" name="bot-field" />
         <input type="text" name="type" />
+        
+        <!-- Expanded Address Fields -->
         <input type="text" name="address" />
+        <input type="text" name="zipcode" />
+        <input type="text" name="city" />
+
+        <!-- New fields for timeline and message -->
+        <input type="text" name="timeline" />
+        <textarea name="message"></textarea>
+        <!-- Contact fields -->
         <input type="text" name="name" />
         <input type="tel" name="phone" />
+        <input type="email" name="email" />
     </form>
 
     <script type="text/babel" data-type="module">
@@ -104,7 +114,10 @@
             ShieldCheck,
             Award,
             TrendingUp,
-            Network
+            Network,
+            CalendarClock,
+            MessageSquarePlus,
+            Mail
         } from 'lucide-react';
 
         // --- ANIMATION PRIMITIVES ---
@@ -318,8 +331,19 @@
 
         const FormEngine = () => {
             const [step, setStep] = useState(1);
-            // Added bot-field to state
-            const [data, setData] = useState({ type: '', address: '', name: '', phone: '', 'bot-field': '' });
+            // Added zipcode, city to state
+            const [data, setData] = useState({ 
+                type: '', 
+                address: '', 
+                zipcode: '',
+                city: '',
+                timeline: '', 
+                message: '',
+                name: '', 
+                phone: '', 
+                email: '',
+                'bot-field': '' 
+            });
             const [isSubmitting, setIsSubmitting] = useState(false);
 
             const next = () => setStep(s => s + 1);
@@ -331,7 +355,7 @@
             };
 
             const handleSubmit = async () => {
-                if (!data.name || !data.phone) return;
+                if (!data.name || !data.phone || !data.email) return;
                 
                 setIsSubmitting(true);
                 
@@ -348,7 +372,7 @@
                         headers: { "Content-Type": "application/x-www-form-urlencoded" },
                         body: encode({ "form-name": "contact", ...data })
                     });
-                    setStep(4);
+                    setStep(5); // Success step is now 5
                 } catch (error) {
                     alert("Une erreur est survenue lors de l'envoi. Merci de réessayer.");
                     console.error(error);
@@ -356,6 +380,13 @@
                     setIsSubmitting(false);
                 }
             };
+
+            const timelineOptions = [
+                { label: "Immédiat", sub: "0-3 mois" },
+                { label: "Moyen terme", sub: "3-12 mois" },
+                { label: "Long terme", sub: "12 mois +" },
+                { label: "Avis de Valeur", sub: "Curiosité" }
+            ];
 
             return (
                 <section id="audit" className="px-6 py-12">
@@ -371,7 +402,7 @@
                             <motion.div 
                                 className="h-full bg-laforet-cyan"
                                 initial={{ width: "0%" }}
-                                animate={{ width: `${(step / 3) * 100}%` }}
+                                animate={{ width: `${(step / 4) * 100}%` }}
                                 transition={{ duration: 0.5 }}
                             />
                         </div>
@@ -388,7 +419,7 @@
                                     className="space-y-8"
                                 >
                                     <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 1/3</span>
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 1/4</span>
                                         <h3 className="text-3xl font-bold text-laforet-navy">Quel type de bien ?</h3>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -416,7 +447,7 @@
                                 </motion.div>
                             )}
 
-                            {/* STEP 2: ADDRESS */}
+                            {/* STEP 2: ADDRESS (Updated with multiple fields) */}
                             {step === 2 && (
                                 <motion.div
                                     key="step2"
@@ -427,28 +458,53 @@
                                     className="space-y-8"
                                 >
                                     <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 2/3</span>
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 2/4</span>
                                         <h3 className="text-3xl font-bold text-laforet-navy">Où se situe le bien ?</h3>
                                         <p className="text-gray-500">Pour identifier le micro-marché de votre quartier.</p>
                                     </div>
                                     
-                                    <div className="relative group">
-                                        <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-laforet-cyan transition-colors" />
-                                        <input 
-                                            autoFocus
-                                            type="text"
-                                            name="address"
-                                            placeholder="Adresse exacte en Touraine"
-                                            className="w-full pl-14 pr-6 py-6 bg-gray-50 border-2 border-transparent rounded-2xl text-lg font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
-                                            value={data.address}
-                                            onChange={(e) => setData({ ...data, address: e.target.value })}
-                                            onKeyDown={(e) => e.key === 'Enter' && data.address && next()}
-                                        />
+                                    <div className="space-y-4">
+                                        <div className="relative group">
+                                            <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-laforet-cyan transition-colors" />
+                                            <input 
+                                                autoFocus
+                                                type="text"
+                                                name="address"
+                                                placeholder="Numéro et voie"
+                                                className="w-full pl-14 pr-6 py-6 bg-gray-50 border-2 border-transparent rounded-2xl text-lg font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                                value={data.address}
+                                                onChange={(e) => setData({ ...data, address: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="relative group">
+                                                <input 
+                                                    type="text"
+                                                    name="zipcode"
+                                                    placeholder="Code Postal"
+                                                    className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                                    value={data.zipcode}
+                                                    onChange={(e) => setData({ ...data, zipcode: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="relative group">
+                                                <input 
+                                                    type="text"
+                                                    name="city"
+                                                    placeholder="Ville"
+                                                    className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                                    value={data.city}
+                                                    onChange={(e) => setData({ ...data, city: e.target.value })}
+                                                    onKeyDown={(e) => e.key === 'Enter' && data.address && data.zipcode && data.city && next()}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <button 
                                         onClick={next}
-                                        disabled={!data.address}
+                                        disabled={!data.address || !data.zipcode || !data.city}
                                         className="w-full bg-laforet-navy text-white font-bold py-5 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-laforet-cyan transition-colors shadow-lg shadow-laforet-navy/20"
                                     >
                                         Valider mon adresse
@@ -456,10 +512,72 @@
                                 </motion.div>
                             )}
 
-                            {/* STEP 3: CONTACT */}
+                            {/* STEP 3: TIMELINE & DETAILS */}
                             {step === 3 && (
                                 <motion.div
                                     key="step3"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-8"
+                                >
+                                    <div className="text-center space-y-2">
+                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 3/4</span>
+                                        <h3 className="text-3xl font-bold text-laforet-navy">Votre projet de vente ?</h3>
+                                        <p className="text-gray-500">Quelle est votre échéance idéale ?</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {timelineOptions.map((opt) => (
+                                            <button
+                                                key={opt.label}
+                                                onClick={() => setData({ ...data, timeline: opt.label })}
+                                                className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
+                                                    data.timeline === opt.label 
+                                                    ? 'border-laforet-cyan bg-laforet-cyan/5' 
+                                                    : 'border-gray-50 bg-gray-50 hover:bg-gray-100 hover:border-gray-200'
+                                                }`}
+                                            >
+                                                <div className={`w-4 h-4 rounded-full border mb-3 flex items-center justify-center ${
+                                                    data.timeline === opt.label ? 'border-laforet-cyan' : 'border-gray-300'
+                                                }`}>
+                                                    {data.timeline === opt.label && <div className="w-2 h-2 bg-laforet-cyan rounded-full" />}
+                                                </div>
+                                                <span className={`block text-sm font-bold ${data.timeline === opt.label ? 'text-laforet-navy' : 'text-gray-700'}`}>
+                                                    {opt.label}
+                                                </span>
+                                                <span className="text-xs text-gray-400">{opt.sub}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="relative group">
+                                        <MessageSquarePlus className="absolute left-6 top-6 text-gray-400" size={20} />
+                                        <textarea 
+                                            name="message"
+                                            rows="2"
+                                            placeholder="Précisions sur votre projet (optionnel)..."
+                                            className="w-full pl-14 pr-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl text-base font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all resize-none"
+                                            value={data.message}
+                                            onChange={(e) => setData({ ...data, message: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <button 
+                                        onClick={next}
+                                        disabled={!data.timeline}
+                                        className="w-full bg-laforet-navy text-white font-bold py-5 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-laforet-cyan transition-colors shadow-lg shadow-laforet-navy/20"
+                                    >
+                                        Valider mon projet
+                                    </button>
+                                </motion.div>
+                            )}
+
+                            {/* STEP 4: CONTACT */}
+                            {step === 4 && (
+                                <motion.div
+                                    key="step4"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
@@ -488,11 +606,21 @@
                                             value={data.phone}
                                             onChange={(e) => setData({ ...data, phone: e.target.value })}
                                         />
+                                        <div className="relative group">
+                                            <input 
+                                                type="email"
+                                                name="email"
+                                                placeholder="Adresse email"
+                                                className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 focus:ring-4 focus:ring-laforet-cyan/10 outline-none transition-all"
+                                                value={data.email}
+                                                onChange={(e) => setData({ ...data, email: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
 
                                     <button 
                                         onClick={handleSubmit}
-                                        disabled={isSubmitting || !data.name || !data.phone}
+                                        disabled={isSubmitting || !data.name || !data.phone || !data.email}
                                         className="w-full bg-laforet-cyan text-white font-bold py-5 rounded-2xl hover:bg-laforet-navy transition-colors shadow-glow hover:shadow-lg transform hover:-translate-y-0.5 duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isSubmitting ? 'Envoi en cours...' : 'Demander mon audit stratégique'}
@@ -505,7 +633,7 @@
                             )}
 
                             {/* SUCCESS */}
-                            {step === 4 && (
+                            {step === 5 && (
                                 <motion.div
                                     key="success"
                                     initial={{ opacity: 0, scale: 0.9 }}
