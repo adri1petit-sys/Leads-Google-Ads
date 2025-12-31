@@ -94,31 +94,27 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        body {
+        /* Masquer la scrollbar tout en conservant le scroll */
+
+        /* Chrome, Safari, Edge */
+        *::-webkit-scrollbar {
+          display: none;
+        }
+
+        /* Firefox */
+        * {
+          scrollbar-width: none;
+        }
+
+        /* IE / anciens Edge */
+        * {
+          -ms-overflow-style: none;
+        }
+
+        html, body {
             background-color: #F5F5F7;
             color: #183C89;
-        }
-        /* Refined Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F5F5F7;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        /* Hide scrollbar for TrustPills on mobile */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            overflow-y: scroll; /* Sécurité supplémentaire */
         }
     </style>
 </head>
@@ -161,7 +157,9 @@
             Network,
             CalendarClock,
             MessageSquarePlus,
-            Mail
+            Mail,
+            FileText,
+            Lightbulb
         } from 'lucide-react';
 
         // --- ANIMATION PRIMITIVES ---
@@ -298,7 +296,7 @@
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/60"
+                className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200"
             >
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-6">
@@ -323,37 +321,60 @@
             </motion.nav>
         );
 
-        const TrustPill = ({ icon: Icon, text, className = "" }) => (
-            <div className={`flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2 bg-white rounded-full border border-gray-100 shadow-sm whitespace-nowrap ${className}`}>
-                <Icon className="w-3.5 h-3.5 md:w-3.5 md:h-3.5 text-laforet-cyan" />
-                <span className="text-[11px] md:text-sm font-medium text-gray-600 leading-none">{text}</span>
-            </div>
-        );
+        const TrustPill = ({ icon: Icon, text, className = "", theme = "light" }) => {
+            const isDark = theme === "dark";
+            const containerClass = isDark 
+                ? "bg-white/10 backdrop-blur-md border-white/20 text-white" 
+                : "bg-white border-gray-100 text-gray-600";
+            
+            return (
+                <div className={`flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2 rounded-full border shadow-sm whitespace-nowrap ${containerClass} ${className}`}>
+                    <Icon className="w-3.5 h-3.5 md:w-3.5 md:h-3.5 text-laforet-cyan" />
+                    <span className={`text-[11px] md:text-sm font-medium leading-none ${isDark ? "text-white" : "text-gray-600"}`}>{text}</span>
+                </div>
+            );
+        };
 
         const Hero = ({ onStart }) => (
-            <section className="pt-32 pb-20 px-6 text-center">
+            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+                {/* Background Image & Overlay */}
+                <div className="absolute inset-0 z-0">
+                    <img 
+                        src="https://i.postimg.cc/qMVcnC6Y/Generated-Image-December-31-2025-11-37AM.jpg" 
+                        alt="Terrasse" 
+                        className="w-full h-full object-cover object-center"
+                    />
+                    {/* Warm Dark Overlay */}
+                    <div className="absolute inset-0 bg-stone-900/40 mix-blend-multiply" />
+                    {/* Gradient for Text Readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+                </div>
+
+                {/* Bottom Soft Fade */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F5F5F7] to-transparent z-10" />
+
                 <motion.div 
                     initial="hidden"
                     animate="visible"
                     variants={STAGGER_CONTAINER}
-                    className="max-w-5xl mx-auto flex flex-col items-center"
+                    className="relative z-20 max-w-5xl mx-auto flex flex-col items-center px-6 pt-20 text-center"
                 >
                     <motion.div variants={FADE_IN} className="flex flex-nowrap items-center justify-center gap-2 md:gap-3 mb-8 md:mb-10 w-full">
-                        <TrustPill icon={Star} text="4.9/5 sur Google" />
-                        <TrustPill icon={CheckCircle2} text="+300 projets réussis" className="hidden md:flex" />
-                        <TrustPill icon={MapPin} text="Expertise Locale 2026" />
+                        <TrustPill theme="dark" icon={Star} text="4.9/5 sur Google" />
+                        <TrustPill theme="dark" icon={CheckCircle2} text="+300 projets réussis" className="hidden md:flex" />
+                        <TrustPill theme="dark" icon={MapPin} text="Expertise Locale 2026" />
                     </motion.div>
 
                     <motion.h1 
                         variants={FADE_IN}
-                        className="text-4xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#183C89] to-[#183C89] tracking-tight mb-8 leading-[1.2] md:leading-[1.1] pb-2 max-w-[330px] md:max-w-4xl mx-auto"
+                        className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-8 leading-[1.2] pb-2 max-w-sm md:max-w-5xl mx-auto drop-shadow-xl"
                     >
                         Propriétaires à Saint-Avertin et Larçay : Obtenez votre estimation précise sous 48h
                     </motion.h1>
 
                     <motion.p 
                         variants={FADE_IN}
-                        className="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-12 font-medium"
+                        className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-12 font-medium drop-shadow-md"
                     >
                         Estimation précise et stratégie de vente personnalisée, sans engagement.
                     </motion.p>
@@ -361,11 +382,11 @@
                     <motion.button 
                         variants={FADE_IN}
                         onClick={onStart}
-                        className="group relative inline-flex items-center gap-3 bg-laforet-navy text-white px-10 py-5 rounded-full font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
+                        className="group relative inline-flex items-center gap-3 bg-white text-laforet-navy px-10 py-5 rounded-full font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 transition-all duration-300 overflow-hidden"
                     >
                         <span className="relative z-10">1 clic, 1 rendez-vous</span>
                         <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" />
-                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                        <div className="absolute inset-0 bg-gray-100/50 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                     </motion.button>
                 </motion.div>
             </section>
@@ -624,24 +645,128 @@
 
         const LocalInfluenceSection = () => (
             <section className="py-24 px-6 bg-white overflow-hidden">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                    <div><h2 className="text-4xl md:text-5xl font-bold text-laforet-navy mb-6">La Touraine,<br/> nous la connaissons par cœur.</h2><p className="text-lg text-gray-500 mb-8">Implantés en Touraine depuis 25 ans, nous connaissons chaque commune et les prix réellement signés.</p></div>
-                    <div className="bg-gray-50 rounded-[3rem] p-8 border shadow-inner"><RadarIllustration /></div>
+                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+                    {/* Left Content */}
+                    <div className="flex flex-col gap-8">
+                        <div>
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-laforet-navy mb-4 tracking-tight">
+                                Saint-Avertin, Larçay : <br/>nous connaissons le marché par cœur.
+                            </h2>
+                            <p className="text-lg md:text-xl text-laforet-cyan font-medium mb-6">
+                                Une expertise construite sur le terrain, rue par rue, vente après vente.
+                            </p>
+                            <p className="text-gray-600 leading-relaxed text-lg">
+                                Implantés localement depuis plus de 25 ans, nous ne travaillons pas à partir de moyennes nationales ou d’algorithmes génériques. Nos estimations reposent sur l’analyse des prix réellement signés, des profils d’acquéreurs actifs sur le secteur et des dynamiques propres à chaque quartier.
+                            </p>
+                        </div>
+
+                        {/* Grid Proof Items */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
+                                    <Map className="w-5 h-5 text-laforet-cyan" />
+                                    <span>Analyse micro-quartier</span>
+                                </div>
+                                <p className="text-sm text-gray-500">Écoles, commerces, accès, nuisances, attractivité réelle à la revente.</p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
+                                    <FileText className="w-5 h-5 text-laforet-cyan" />
+                                    <span>Prix réellement signés</span>
+                                </div>
+                                <p className="text-sm text-gray-500">Basés sur les dernières transactions locales, pas sur les annonces.</p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
+                                    <Users className="w-5 h-5 text-laforet-cyan" />
+                                    <span>Demande acquéreurs active</span>
+                                </div>
+                                <p className="text-sm text-gray-500">Profils en recherche immédiate sur Saint-Avertin et communes voisines.</p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
+                                    <Building2 className="w-5 h-5 text-laforet-cyan" />
+                                    <span>Contraintes locales</span>
+                                </div>
+                                <p className="text-sm text-gray-500">Urbanisme, servitudes, projets communaux, secteurs sensibles.</p>
+                            </div>
+                        </div>
+
+                        {/* Differentiation Box */}
+                        <div className="bg-gray-50 border border-gray-200/60 rounded-2xl p-6 relative">
+                            <div className="flex items-center gap-2 text-laforet-navy font-bold mb-2">
+                                <Lightbulb className="w-5 h-5 text-amber-500" />
+                                <span>Ce qui fait la différence</span>
+                            </div>
+                            <p className="text-sm text-gray-600 italic leading-relaxed">
+                                "Deux maisons identiques sur le papier peuvent se vendre à des prix très différents selon leur rue, leur exposition ou leur environnement immédiat. C’est cette lecture fine du terrain qui permet une estimation juste… et une vente au bon prix."
+                            </p>
+                        </div>
+
+                         <p className="text-sm text-gray-400">
+                            Cette carte illustre notre zone d’intervention réelle : un secteur que nous pratiquons au quotidien, pas une zone théorique.
+                        </p>
+                    </div>
+
+                    {/* Right Image */}
+                    <div className="bg-gray-50 rounded-[3rem] p-4 md:p-8 border shadow-inner sticky top-24">
+                        <RadarIllustration />
+                    </div>
                 </div>
             </section>
         );
 
         const GoogleReviewsSection = () => (
-            <section className="py-24 bg-[#F5F5F7] border-t overflow-hidden relative text-center">
+            <section className="py-24 bg-[#F5F5F7] border-t border-gray-200 overflow-hidden relative">
                 <style>{`@keyframes marquee {0% { transform: translateX(0); } 100% { transform: translateX(-50%); }} .animate-marquee { animation: marquee 120s linear infinite; }`}</style>
-                <h2 className="text-4xl font-bold text-laforet-navy mb-16">Avis Google</h2>
-                <div className="flex w-max animate-marquee py-10">
+                
+                <div className="text-center mb-12 px-6">
+                    <h2 className="text-4xl font-bold text-laforet-navy mb-4">Ils nous ont fait confiance</h2>
+                    <div className="flex items-center justify-center gap-2 text-amber-500 mb-8">
+                        <div className="flex">
+                            {[...Array(5)].map((_, i) => <Star key={i} className="w-6 h-6 fill-current" />)}
+                        </div>
+                        <span className="text-laforet-navy font-bold text-lg">4.9/5 sur Google</span>
+                    </div>
+                </div>
+
+                <div className="flex w-max animate-marquee pb-10">
                     {[...googleReviews, ...googleReviews].map((review, index) => (
-                        <div key={index} className="w-[300px] md:w-[400px] p-8 bg-white rounded-[2rem] shadow-sm border mx-4 flex flex-col justify-between h-full">
-                            <p className="text-gray-600 italic mb-8 font-medium">"{review.comment.substring(0, 150)}..."</p>
-                            <div className="flex items-center gap-4 border-t pt-6"><div className="w-12 h-12 rounded-full bg-laforet-cyan text-white flex items-center justify-center font-bold">{review.author[0]}</div><p className="font-bold text-laforet-navy">{review.author}</p></div>
+                        <div key={index} className="w-[300px] md:w-[400px] p-8 bg-white rounded-[2rem] shadow-apple border border-gray-100 mx-4 flex flex-col justify-between h-full relative group hover:shadow-glow transition-all duration-300">
+                           <div className="flex gap-1 mb-4">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={18} className="fill-amber-400 text-amber-400" />
+                                ))}
+                            </div>
+
+                            <p className="text-gray-600 italic mb-6 font-medium leading-relaxed relative z-10">"{review.comment.substring(0, 150)}..."</p>
+                            
+                            <div className="flex items-center gap-4 border-t border-gray-100 pt-6 mt-auto">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-laforet-navy to-laforet-cyan text-white flex items-center justify-center font-bold text-sm shadow-md">
+                                    {review.author[0]}
+                                </div>
+                                <div>
+                                    <p className="font-bold text-laforet-navy text-sm">{review.author}</p>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.25 17.21 15.9 18.11V21.09H19.78C22.05 19 23.49 15.92 23.49 12.275Z" fill="#4285F4"/><path d="M12 24C15.24 24 17.95 22.92 19.78 21.09L15.9 18.11C14.81 18.86 13.48 19.31 12 19.31C8.84 19.31 6.13 17.15 5.14 14.12H1.14V17.22C3.12 21.14 7.27 24 12 24Z" fill="#34A853"/><path d="M5.14 14.12C4.89 13.36 4.75 12.56 4.75 11.75C4.75 10.94 4.89 10.14 5.14 9.38V6.28H1.14C0.39 7.78 0 9.47 0 12C0 14.53 0.39 16.22 1.14 17.72L5.14 14.12Z" fill="#FBBC05"/><path d="M12 4.69C13.8 4.69 15.39 5.31 16.66 6.53L20.07 3.12C17.95 1.14 15.24 0 12 0C7.27 0 3.12 2.86 1.14 6.78L5.14 9.88C6.13 6.85 8.84 4.69 12 4.69Z" fill="#EA4335"/></svg>
+                                         <span className="text-xs text-gray-500 font-semibold">Avis Google</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ))}
+                </div>
+
+                <div className="text-center mt-8 pb-12">
+                     <a 
+                        href="https://share.google/MfdTpW9PIsacXfgmq" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-white text-laforet-navy border border-gray-200 rounded-full font-bold shadow-apple hover:shadow-glow hover:text-laforet-cyan hover:scale-105 transition-all duration-300 group"
+                    >
+                        <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.25 17.21 15.9 18.11V21.09H19.78C22.05 19 23.49 15.92 23.49 12.275Z" fill="#4285F4"/><path d="M12 24C15.24 24 17.95 22.92 19.78 21.09L15.9 18.11C14.81 18.86 13.48 19.31 12 19.31C8.84 19.31 6.13 17.15 5.14 14.12H1.14V17.22C3.12 21.14 7.27 24 12 24Z" fill="#34A853"/><path d="M5.14 14.12C4.89 13.36 4.75 12.56 4.75 11.75C4.75 10.94 4.89 10.14 5.14 9.38V6.28H1.14C0.39 7.78 0 9.47 0 12C0 14.53 0.39 16.22 1.14 17.72L5.14 14.12Z" fill="#FBBC05"/><path d="M12 4.69C13.8 4.69 15.39 5.31 16.66 6.53L20.07 3.12C17.95 1.14 15.24 0 12 0C7.27 0 3.12 2.86 1.14 6.78L5.14 9.88C6.13 6.85 8.84 4.69 12 4.69Z" fill="#EA4335"/></svg>
+                        <span>Voir tous les avis sur Google</span>
+                    </a>
                 </div>
             </section>
         );
