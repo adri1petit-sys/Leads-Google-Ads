@@ -20,7 +20,7 @@
     <meta property="og:type" content="website">
     <meta name="twitter:image" content="https://i.postimg.cc/PJbhCjdD/logo-devant-flocage.png">
 
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) - Global Site Tag -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-11283228533"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -28,23 +28,6 @@
       gtag('js', new Date());
 
       gtag('config', 'AW-11283228533');
-    </script>
-
-    <!-- Google tag (gtag.js) event - delayed navigation helper -->
-    <script>
-      // Helper function to delay opening a URL until a gtag event is sent.
-      function gtagSendEvent(url) {
-        var callback = function () {
-          if (typeof url === 'string') {
-            window.location = url;
-          }
-        };
-        gtag('event', 'ads_conversion_Envoi_de_formulaire_pou_1', {
-          'event_callback': callback,
-          'event_timeout': 2000,
-        });
-        return false;
-      }
     </script>
 
     <!-- Fonts -->
@@ -429,9 +412,16 @@
                         headers: { "Content-Type": "application/x-www-form-urlencoded" },
                         body: encode({ "form-name": "contact", ...data })
                     });
-                    if (window.gtag) {
-                        window.gtag('event', 'ads_conversion_Envoi_de_formulaire_pou_1', {});
+                    
+                    // --- GOOGLE ADS CONVERSION TRACKING ---
+                    // Trigger ONLY on actual success
+                    if (typeof window.gtag === 'function') {
+                        window.gtag('event', 'conversion', {
+                            'send_to': 'AW-11283228533/la_CCNLGi9sbEPXOoYQq'
+                        });
                     }
+                    // --------------------------------------
+
                     setStep(5);
                 } catch (error) {
                     alert("Une erreur est survenue lors de l'envoi. Merci de réessayer.");
