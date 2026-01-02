@@ -2,7 +2,7 @@
 <html lang="fr" class="scroll-smooth antialiased">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- SEO & Identity -->
     <title>Laforêt Saint-Avertin | Votre Estimation Gratuite</title>
@@ -98,11 +98,55 @@
             background-color: #F5F5F7;
             color: #183C89;
             overflow-y: scroll; /* Sécurité supplémentaire */
+            -webkit-tap-highlight-color: transparent; /* Supprime le highlight bleu au tap sur mobile */
+            touch-action: manipulation; /* Améliore la réactivité tactile */
+        }
+
+        /* Skeleton Animation */
+        @keyframes pulse-bg {
+            0% { background-color: #e5e7eb; }
+            50% { background-color: #d1d5db; }
+            100% { background-color: #e5e7eb; }
+        }
+        .skeleton {
+            animation: pulse-bg 1.5s infinite;
+        }
+        
+        /* Snap Scroll Utilities for Mobile Carousel */
+        .snap-x-mandatory {
+            scroll-snap-type: x mandatory;
+        }
+        .snap-center {
+            scroll-snap-align: center;
+        }
+        
+        /* Hide scrollbar for carousels but allow scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <!-- SKELETON SCREEN (Visible avant le chargement de React) -->
+        <div class="min-h-screen bg-[#F5F5F7] flex flex-col">
+            <!-- Navbar Skeleton -->
+            <div class="h-14 md:h-20 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-50">
+                <div class="w-24 h-8 bg-gray-200 rounded skeleton"></div>
+                <div class="w-10 h-10 rounded-full bg-gray-200 skeleton"></div>
+            </div>
+            <!-- Hero Skeleton -->
+            <div class="flex-1 flex flex-col items-center justify-center p-6 space-y-6">
+                <div class="w-3/4 h-12 bg-gray-300 rounded-lg skeleton"></div>
+                <div class="w-1/2 h-6 bg-gray-200 rounded skeleton"></div>
+                <div class="w-full max-w-xs h-16 bg-gray-300 rounded-full skeleton mt-8"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Hidden Netlify Form for Detection -->
     <form name="contact" method="POST" netlify data-netlify="true" netlify-honeypot="bot-field" hidden>
@@ -120,7 +164,7 @@
     </form>
 
     <script type="text/babel" data-type="module">
-        import React, { useState, useRef } from 'react';
+        import React, { useState, useRef, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { motion, AnimatePresence } from 'framer-motion';
         import { 
@@ -142,30 +186,32 @@
             MessageSquarePlus,
             Mail,
             FileText,
-            Lightbulb
+            Lightbulb,
+            ChevronRight
         } from 'lucide-react';
 
         // --- ANIMATION PRIMITIVES ---
+        // Simplified for mobile performance
         const FADE_IN = {
-            hidden: { opacity: 0, y: 20 },
+            hidden: { opacity: 0, y: 15 },
             visible: { 
                 opacity: 1, 
                 y: 0,
-                transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+                transition: { duration: 0.5, ease: "easeOut" }
             }
         };
 
         const SECTION_ANIM = {
-            hidden: { opacity: 0, y: 24 },
+            hidden: { opacity: 0, y: 20 },
             visible: { 
                 opacity: 1, 
                 y: 0, 
-                transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+                transition: { duration: 0.6, ease: "easeOut" } 
             }
         };
 
         const STAGGER_CONTAINER = {
-            visible: { transition: { staggerChildren: 0.1 } }
+            visible: { transition: { staggerChildren: 0.05 } }
         };
 
         // --- DATA ---
@@ -173,102 +219,32 @@
             {
                 author: "Francis DUPONT",
                 rating: 5,
-                comment: "Nous avons contacté l’agence Laforêt de Saint-Avertin afin d’obtenir une estimation de notre bien immobilier, sans projet de transaction à court terme. Malgré cela nous avons obtenu un RDV très rapide. Et avons reçu Vincent, qui s’est montré très professionnel, a consacré le temps nécessaire à la visite de notre maison, toujours à l’écoute et très sympathique de surcroît. Comme promis, 4 jours après cette visite, une estimation au plus juste nous était remise directement à l’agence sous forme de book et transmise en format PDF. Un grand merci à M. PETIT et son équipe (Vincent tout particulièrement), nul doute que nous ferons appel à l’agence Laforêt de Saint-Avertin si besoin."
+                comment: "Nous avons contacté l’agence Laforêt de Saint-Avertin afin d’obtenir une estimation de notre bien immobilier. Malgré cela nous avons obtenu un RDV très rapide. Et avons reçu Vincent, qui s’est montré très professionnel."
             },
             {
                 author: "Claude ADR",
                 rating: 5,
-                comment: "Très bonne rencontre avec l'agence pour un avis de valeur. Le premier contact téléphonique a été très sympathique, suivi d'une rencontre très chaleureuse et professionnelle. Efficacité et compétence associées à une extrême gentillesse et une rare politesse font de cette entreprise familiale une agence immobilière de toute confiance, que je prends plaisir à vous conseiller… n'hésitez pas à franchir la porte de cette agence je vous la recommande."
+                comment: "Très bonne rencontre avec l'agence pour un avis de valeur. Le premier contact téléphonique a été très sympathique, suivi d'une rencontre très chaleureuse et professionnelle."
             },
             {
                 author: "Ugo Clerici",
                 rating: 5,
-                comment: "Une agence familiale, réactive, disponible et à l'écoute du besoin du client. Nous avons reçu un accueil chaleureux dans leurs locaux afin de faire les présentations et d'exposer le projet. Des visites et contre-visites ont été réalisées avec Vincent, Adrien et Olivier. Un second accueil chaleureux en agence afin d'expliquer les termes du compromis avec Olivier, qui assure un suivi régulier jusqu'à la signature chez le notaire. Merci beaucoup ! Bonne continuation à la famille Petit !"
+                comment: "Une agence familiale, réactive, disponible et à l'écoute du besoin du client. Des visites et contre-visites ont été réalisées avec Vincent, Adrien et Olivier."
             },
             {
                 author: "Christophe Fontaine",
                 rating: 5,
-                comment: "Une belle équipe familiale dynamique, sympathique et hyper efficace. Deux biens vendus rapidement en quelques semaines et « au prix ». Bravo à tous ! Je recommande vivement."
+                comment: "Une belle équipe familiale dynamique, sympathique et hyper efficace. Deux biens vendus rapidement en quelques semaines et « au prix ». Bravo à tous !"
             },
             {
                 author: "Seb Decout",
                 rating: 5,
-                comment: "Nous tenons à remercier chaleureusement l'agence LaFORÊT, en particulier Vincent et Olivier pour leur accompagnement remarquable lors de l’achat de notre maison. Dès notre première rencontre, nous avons été séduits par leur écoute attentive et leur expertise pointue du marché local. Olivier a su nous guider avec une connaissance approfondie du terrain, Vincent a été d’une réactivité et d’une disponibilité sans faille à chaque étape. Leur professionnalisme, leur transparence et leur bienveillance ont facilité notre recherche très spécifique et en temps contraint, en une expérience sereine : nous nous sommes sentis soutenus et conseillés avec une grande rigueur. Un immense merci à eux pour leur engagement et leur accompagnement de chaque instant. Si vous cherchez une agence compétente, sérieuse et à taille humaine, l'équipe familiale de l'agence LaFORÊT Saint-Avertin répondra à vos attentes."
-            },
-            {
-                author: "Claire",
-                rating: 5,
-                comment: "Nous avions besoin de conseils. L'agence La Forêt nous a très bien reçus et très bien conseillés en nous donnant beaucoup de renseignements très pratiques et utiles."
-            },
-            {
-                author: "Patrick Guillemin",
-                rating: 5,
-                comment: "Voilà une agence immobilière de toute confiance. C'est une entreprise familiale où tout le monde se complète de la prospection jusqu'à la vente. Quel plaisir de trouver des interlocuteurs aussi compétents et chacun a sa place dans l'agence. Un bel avenir leur est promis. Merci à toute l'équipe d'avoir mené de main de maître la vente de notre appartement. Bravo."
-            },
-            {
-                author: "Amélie Durand",
-                rating: 5,
-                comment: "Très professionnel, compétent, réactif et agréable. Merci à vous."
-            },
-            {
-                author: "Chayane Charaf",
-                rating: 5,
-                comment: "Merci à toute l’équipe pour leur gentillesse, leur professionnalisme et leur disponibilité, je recommande pour tous les futurs locataires !"
-            },
-            {
-                author: "Sébastien L",
-                rating: 5,
-                comment: "Je remercie toute l’équipe de l’agence pour son professionnalisme. Elle s’adapte à toutes les situations. Je recommande vivement."
-            },
-            {
-                author: "Younès BOUNAAJA",
-                rating: 5,
-                comment: "Sérieux et à l’écoute de leurs clients, équipe familiale agréable et professionnelle. Pour vos projets, n’hésitez pas : ils sont de très bons conseils."
+                comment: "Nous tenons à remercier chaleureusement l'agence LaFORÊT. Olivier a su nous guider avec une connaissance approfondie du terrain, Vincent a été d’une réactivité sans faille."
             },
             {
                 author: "Céline M",
                 rating: 5,
-                comment: "Une entreprise familiale extraordinaire : ils ont réussi à vendre mon appartement en moins d’une semaine alors que seul j’ai attendu pratiquement un an. Je recommande énormément, une gentillesse au top et une réactivité excellente. Merci beaucoup."
-            },
-            {
-                author: "Elsa Verdu",
-                rating: 5,
-                comment: "Un accompagnement parfait ! Une vraie qualité d'écoute, une réactivité impressionnante et une disponibilité permanente. On refera appel à vous quel que soit notre projet immobilier, les yeux fermés ! Merci à toute la Team Petit."
-            },
-            {
-                author: "Christ Snoijs",
-                rating: 5,
-                comment: "La vente de notre maison à St AVE s'est parfaitement bien déroulée et ce grâce au professionnalisme de Mr Petit et ses fils de l'agence La Forêt qui nous ont suivi dans toutes les étapes avec une grande connaissance et bienveillance et toujours avec le respect pour chaque partie! Bravo et merci beaucoup à cette grande famille PETIT que nous recommandons !!"
-            },
-            {
-                author: "Alexa Caland",
-                rating: 5,
-                comment: "Merci de votre réactivité et de votre professionnalisme tout au long de nos échanges."
-            },
-            {
-                author: "Navez Loane",
-                rating: 5,
-                comment: "Une équipe au top ! Une agence professionnelle ! Merci pour votre accompagnement durant notre vente !"
-            },
-            {
-                author: "Kevin",
-                rating: 5,
-                comment: "Vente de notre maison réalisée rapidement grâce à leur professionnalisme, leur disponibilité et leur écoute. Le sérieux et les qualités humaines des membres de l'agence sont très appréciables. Je recommande vivement !"
-            },
-            {
-                author: "Flo A",
-                rating: 5,
-                comment: "Bien en gestion locative. Agence très sérieuse. Prestations de qualité."
-            },
-            {
-                author: "Lucie de Prat",
-                rating: 5,
-                comment: "Dans le cadre d'un achat, nous avons été accompagnés par M. Petit de l'Agence LaFORÊT. M. Petit a été très disponible et très professionnel. Tous nos échanges se sont déroulés dans la sincérité et la simplicité. Compte tenu qu'aujourd'hui tous les documents se font en ligne, il a su accompagner les vendeurs dans les démarches d'ordre informatique, ce qui a aisément contribué à l'efficacité de la vente. Tant du point de vue vendeur qu'acheteur, et ce jusqu'à l'acte chez le notaire, nous vous encourageons à prendre contact avec cette agence."
-            },
-            {
-                author: "Alzina Savey",
-                rating: 5,
-                comment: "Un grand merci à toute l’équipe de l'agence LaFORÊT Saint-Avertin ! Grâce à leur écoute, leur disponibilité et leurs précieux conseils, nous avons trouvé la maison de nos rêves. Tout s’est déroulé avec simplicité et sérénité, du premier contact jusqu’à la signature. Leur professionnalisme est accompagné d’une vraie dimension humaine, ce qui fait toute la différence. Nous recommandons cette agence les yeux fermés !"
+                comment: "Une entreprise familiale extraordinaire : ils ont réussi à vendre mon appartement en moins d’une semaine alors que seul j’ai attendu pratiquement un an."
             }
         ];
 
@@ -276,29 +252,31 @@
 
         const Navbar = () => (
             <motion.nav 
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200"
+                initial={{ y: -100 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100"
             >
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-3 md:gap-4">
                         <img 
                             src="https://i.postimg.cc/PJbhCjdD/logo-devant-flocage.png" 
                             alt="Laforêt" 
-                            className="h-8 md:h-10 w-auto object-contain" 
+                            className="h-6 md:h-10 w-auto object-contain" 
                         />
-                        <div className="hidden md:flex flex-col">
+                         <div className="hidden md:flex flex-col">
                             <span className="text-sm font-bold text-laforet-navy tracking-tight">AGENCE LaFORÊT</span>
                             <span className="text-xs text-gray-500 font-medium">Expertise familiale</span>
                         </div>
                     </div>
                     <a 
                         href="tel:0246466380"
-                        className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-laforet-navy/5 text-laforet-navy font-semibold text-sm hover:bg-laforet-navy hover:text-white transition-all duration-300"
+                        className="group flex items-center gap-2 p-2 md:px-5 md:py-2.5 rounded-full bg-laforet-navy text-white font-bold md:font-semibold text-sm active:scale-95 transition-all duration-200 shadow-md md:shadow-none hover:bg-opacity-90"
+                        aria-label="Appeler l'agence"
                     >
-                        <Phone size={16} className="text-laforet-navy group-hover:text-white transition-colors" />
+                        <Phone size={18} className="text-white fill-current" />
                         <span className="hidden sm:inline">02 46 46 63 80</span>
+                        <span className="inline sm:hidden uppercase text-xs tracking-wide">Appeler</span>
                     </a>
                 </div>
             </motion.nav>
@@ -307,70 +285,70 @@
         const TrustPill = ({ icon: Icon, text, className = "", theme = "light" }) => {
             const isDark = theme === "dark";
             const containerClass = isDark 
-                ? "bg-white/10 backdrop-blur-md border-white/20 text-white" 
+                ? "bg-black/40 backdrop-blur-md border-white/20 text-white" 
                 : "bg-white border-gray-100 text-gray-600";
             
             return (
-                <div className={`flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-2 md:px-4 md:py-2 rounded-full border shadow-sm whitespace-nowrap ${containerClass} ${className}`}>
-                    <Icon className="w-3.5 h-3.5 md:w-3.5 md:h-3.5 text-laforet-cyan" />
-                    <span className={`text-[11px] md:text-sm font-medium leading-none ${isDark ? "text-white" : "text-gray-600"}`}>{text}</span>
+                <div className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-sm whitespace-nowrap ${containerClass} ${className}`}>
+                    <Icon className="w-3.5 h-3.5 text-laforet-cyan" />
+                    <span className={`text-xs font-medium leading-none ${isDark ? "text-white" : "text-gray-600"}`}>{text}</span>
                 </div>
             );
         };
 
         const Hero = ({ onStart }) => (
-            <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+            <section className="relative pt-14 md:pt-20 h-[80vh] md:min-h-[600px] md:h-auto flex items-center justify-center overflow-hidden">
                 {/* Background Image & Overlay */}
                 <div className="absolute inset-0 z-0">
                     <img 
                         src="https://i.postimg.cc/qMVcnC6Y/Generated-Image-December-31-2025-11-37AM.jpg" 
                         alt="Terrasse" 
                         className="w-full h-full object-cover object-center"
+                        loading="eager"
                     />
-                    {/* Warm Dark Overlay */}
-                    <div className="absolute inset-0 bg-stone-900/40 mix-blend-multiply" />
-                    {/* Gradient for Text Readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40" />
+                    {/* Darker Gradient Overlay for Blue Button Contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 mix-blend-multiply transition-colors duration-300" />
                 </div>
-
-                {/* Bottom Soft Fade */}
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#F5F5F7] to-transparent z-10" />
 
                 <motion.div 
                     initial="hidden"
                     animate="visible"
                     variants={STAGGER_CONTAINER}
-                    className="relative z-20 max-w-5xl mx-auto flex flex-col items-center px-6 pt-20 text-center"
+                    className="relative z-20 w-full max-w-5xl mx-auto flex flex-col items-center justify-center px-6 h-full md:h-auto md:pt-10 md:pb-20 text-center"
                 >
-                    <motion.div variants={FADE_IN} className="flex flex-nowrap items-center justify-center gap-2 md:gap-3 mb-8 md:mb-10 w-full">
+                    {/* Golden Ratio Spacing: Margin Top / Margin Bottom adjusted via flex and padding */}
+                    <motion.div variants={FADE_IN} className="flex flex-wrap items-center justify-center gap-2 mb-6 w-full">
                         <TrustPill theme="dark" icon={Star} text="4.9/5 sur Google" />
-                        <TrustPill theme="dark" icon={CheckCircle2} text="+300 projets réussis" className="hidden md:flex" />
-                        <TrustPill theme="dark" icon={MapPin} text="Expertise Locale 2026" />
+                        <TrustPill theme="dark" icon={MapPin} text="Saint-Avertin & Larçay" />
                     </motion.div>
 
+                    {/* H1: 34px (Mobile) / Line-height 1.2 */}
                     <motion.h1 
                         variants={FADE_IN}
-                        className="text-3xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-8 leading-[1.2] pb-2 max-w-sm md:max-w-5xl mx-auto drop-shadow-xl"
+                        className="text-[34px] md:text-6xl font-extrabold text-white tracking-tight leading-[1.2] drop-shadow-xl max-w-sm md:max-w-none mx-auto mb-4"
                     >
-                        Propriétaires à Saint-Avertin et Larçay : Obtenez votre estimation précise sous 48h
+                        Vendez au <span className="text-laforet-cyan">vrai prix</span>.
                     </motion.h1>
 
+                    {/* H2: ~21px (Mobile) / Lighter weight */}
                     <motion.p 
                         variants={FADE_IN}
-                        className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-12 font-medium drop-shadow-md"
+                        className="text-[21px] md:text-2xl text-white/90 max-w-xl mx-auto mb-10 font-normal drop-shadow-md leading-snug px-2"
                     >
-                        Estimation précise et stratégie de vente personnalisée, sans engagement.
+                        Estimation précise sous 48h par une agence familiale experte.
                     </motion.p>
 
-                    <motion.button 
-                        variants={FADE_IN}
-                        onClick={onStart}
-                        className="group relative inline-flex items-center gap-3 bg-white text-laforet-navy px-10 py-5 rounded-full font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 transition-all duration-300 overflow-hidden"
-                    >
-                        <span className="relative z-10">1 clic, 1 rendez-vous</span>
-                        <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" />
-                        <div className="absolute inset-0 bg-gray-100/50 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                    </motion.button>
+                    {/* CTA: Blue #183C89 / Height 50px / Radius 8px */}
+                    <motion.div variants={FADE_IN} className="w-full flex justify-center px-4">
+                        <motion.button 
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onStart}
+                            className="w-full max-w-xs bg-laforet-navy text-white h-[50px] rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-3 relative overflow-hidden transition-all hover:bg-laforet-navy/90"
+                        >
+                            <span>Estimer mon bien</span>
+                            <ArrowRight size={20} className="text-white" />
+                        </motion.button>
+                    </motion.div>
                 </motion.div>
             </section>
         );
@@ -391,11 +369,28 @@
             });
             const [isSubmitting, setIsSubmitting] = useState(false);
 
-            const next = () => setStep(s => s + 1);
+            const next = () => {
+                const el = document.getElementById('audit');
+                if(el) {
+                    const offset = 70;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = el.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                }
+                setStep(s => s + 1);
+            };
             
             const handleTypeSelect = (type) => {
                 setData({ ...data, type });
                 next();
+            };
+
+            const handleCitySelect = (cityName) => {
+                 setData({ ...data, city: cityName, zipcode: '37550' }); // 37550 is valid for both usually in this context, or let user adjust
+                 // Small delay to show visual feedback
+                 setTimeout(next, 150);
             };
 
             const handleSubmit = async () => {
@@ -413,16 +408,15 @@
                         body: encode({ "form-name": "contact", ...data })
                     });
                     
-                    // --- GOOGLE ADS CONVERSION TRACKING ---
-                    // Trigger ONLY on actual success
                     if (typeof window.gtag === 'function') {
                         window.gtag('event', 'conversion', {
                             'send_to': 'AW-11283228533/la_CCNLGi9sbEPXOoYQq'
                         });
                     }
-                    // --------------------------------------
 
                     setStep(5);
+                    const el = document.getElementById('audit');
+                    if(el) el.scrollIntoView({ behavior: 'smooth' });
                 } catch (error) {
                     alert("Une erreur est survenue lors de l'envoi. Merci de réessayer.");
                     console.error(error);
@@ -439,105 +433,148 @@
             ];
 
             return (
-                <section id="audit" className="px-6 py-12">
+                <section id="audit" className="px-4 py-8 md:py-12 bg-white -mt-10 rounded-t-[2.5rem] relative z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     <motion.div 
                         layout
-                        initial={{ opacity: 0, y: 40 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6 }}
-                        className="w-full max-w-2xl mx-auto bg-white rounded-[2.5rem] shadow-apple p-8 md:p-12 border border-gray-100 relative overflow-hidden"
+                        className="w-full max-w-xl mx-auto"
                     >
-                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gray-100">
-                            <motion.div 
-                                className="h-full bg-laforet-cyan"
-                                initial={{ width: "0%" }}
-                                animate={{ width: `${(step / 4) * 100}%` }}
-                                transition={{ duration: 0.5 }}
-                            />
+                        {/* Progress Bar Compact */}
+                        <div className="flex gap-2 mb-8 justify-center">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className={`h-1.5 w-full rounded-full transition-colors duration-300 ${i <= step ? 'bg-laforet-cyan' : 'bg-gray-100'}`} />
+                            ))}
                         </div>
 
                         <AnimatePresence mode="wait">
                             {step === 1 && (
-                                <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 1/4</span>
-                                        <h3 className="text-3xl font-bold text-laforet-navy">Quel type de bien ?</h3>
+                                <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                                    <div className="text-center mb-6">
+                                        <h3 className="text-2xl font-bold text-laforet-navy">Quel est votre bien ?</h3>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <button onClick={() => handleTypeSelect('Maison')} className="group relative p-8 rounded-3xl border-2 border-gray-50 hover:border-laforet-cyan/30 hover:bg-laforet-cyan/5 transition-all duration-300 text-left">
-                                            <div className="w-14 h-14 bg-blue-50 text-laforet-navy rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"><Home size={28} /></div>
-                                            <span className="block text-xl font-bold text-laforet-navy">Maison</span>
-                                            <span className="text-sm text-gray-400 font-medium">Villa, Pavillon...</span>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={() => handleTypeSelect('Maison')} className="group flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-laforet-cyan hover:bg-white active:scale-95 transition-all duration-200">
+                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-laforet-navy border border-gray-100"><Home size={32} /></div>
+                                            <span className="text-lg font-bold text-laforet-navy">Maison</span>
                                         </button>
-                                        <button onClick={() => handleTypeSelect('Appartement')} className="group relative p-8 rounded-3xl border-2 border-gray-50 hover:border-laforet-cyan/30 hover:bg-laforet-cyan/5 transition-all duration-300 text-left">
-                                            <div className="w-14 h-14 bg-blue-50 text-laforet-navy rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300"><Building2 size={28} /></div>
-                                            <span className="block text-xl font-bold text-laforet-navy">Appartement</span>
-                                            <span className="text-sm text-gray-400 font-medium">Studio, T2, Loft...</span>
+                                        <button onClick={() => handleTypeSelect('Appartement')} className="group flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-gray-100 bg-gray-50 hover:border-laforet-cyan hover:bg-white active:scale-95 transition-all duration-200">
+                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-laforet-navy border border-gray-100"><Building2 size={32} /></div>
+                                            <span className="text-lg font-bold text-laforet-navy">Appartement</span>
                                         </button>
                                     </div>
                                 </motion.div>
                             )}
 
                             {step === 2 && (
-                                <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 2/4</span>
-                                        <h3 className="text-3xl font-bold text-laforet-navy">Où se situe le bien ?</h3>
+                                <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                                    <div className="text-center mb-2">
+                                        <h3 className="text-2xl font-bold text-laforet-navy">Où se situe le bien ?</h3>
+                                        <p className="text-sm text-gray-400">Sélectionnez la commune ou saisissez-la.</p>
                                     </div>
+
+                                    {/* Quick Tap Buttons for Mobile */}
+                                    <div className="grid grid-cols-2 gap-3 mb-2">
+                                        <button 
+                                            onClick={() => handleCitySelect('Saint-Avertin')}
+                                            className="py-3 px-2 bg-laforet-navy/5 text-laforet-navy font-bold rounded-xl text-sm border border-transparent hover:border-laforet-navy active:bg-laforet-navy active:text-white transition-all"
+                                        >
+                                            Saint-Avertin
+                                        </button>
+                                        <button 
+                                            onClick={() => handleCitySelect('Larçay')}
+                                            className="py-3 px-2 bg-laforet-navy/5 text-laforet-navy font-bold rounded-xl text-sm border border-transparent hover:border-laforet-navy active:bg-laforet-navy active:text-white transition-all"
+                                        >
+                                            Larçay
+                                        </button>
+                                    </div>
+
                                     <div className="space-y-4">
-                                        <div className="relative group">
-                                            <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-laforet-cyan" />
-                                            <input autoFocus type="text" placeholder="Numéro et voie" className="w-full pl-14 pr-6 py-6 bg-gray-50 border-2 border-transparent rounded-2xl text-lg font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan/30 outline-none transition-all" value={data.address} onChange={(e) => setData({ ...data, address: e.target.value })} />
+                                        <div className="relative">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                            <input autoFocus type="text" placeholder="Adresse / Rue" className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-lg font-medium text-laforet-navy focus:bg-white focus:border-laforet-cyan outline-none transition-all" value={data.address} onChange={(e) => setData({ ...data, address: e.target.value })} autoComplete="street-address" />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input type="text" placeholder="Code Postal" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none" value={data.zipcode} onChange={(e) => setData({ ...data, zipcode: e.target.value })} />
-                                            <input type="text" placeholder="Ville" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none" value={data.city} onChange={(e) => setData({ ...data, city: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && data.address && data.zipcode && data.city && next()} />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <input 
+                                                type="text" 
+                                                inputMode="numeric" 
+                                                pattern="[0-9]*"
+                                                placeholder="Code Postal" 
+                                                className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:bg-white focus:border-laforet-cyan outline-none text-center" 
+                                                value={data.zipcode} 
+                                                onChange={(e) => setData({ ...data, zipcode: e.target.value })} 
+                                                autoComplete="postal-code"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Ville" 
+                                                className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:bg-white focus:border-laforet-cyan outline-none text-center" 
+                                                value={data.city} 
+                                                onChange={(e) => setData({ ...data, city: e.target.value })} 
+                                                onKeyDown={(e) => e.key === 'Enter' && data.address && data.zipcode && data.city && next()} 
+                                                autoComplete="address-level2"
+                                            />
                                         </div>
                                     </div>
-                                    <button onClick={next} disabled={!data.address || !data.zipcode || !data.city} className="w-full bg-laforet-navy text-white font-bold py-5 rounded-2xl disabled:opacity-50 hover:bg-laforet-cyan transition-colors shadow-lg">Valider mon adresse</button>
+                                    <button onClick={next} disabled={!data.address || !data.zipcode || !data.city} className="w-full bg-laforet-navy text-white font-bold py-4 rounded-xl disabled:opacity-50 active:scale-95 transition-all shadow-lg text-lg flex items-center justify-center gap-2">
+                                        Valider <ChevronRight size={20} />
+                                    </button>
                                 </motion.div>
                             )}
 
                             {step === 3 && (
-                                <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Étape 3/4</span>
-                                        <h3 className="text-3xl font-bold text-laforet-navy">Votre projet de vente ?</h3>
+                                <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                                    <div className="text-center mb-2">
+                                        <h3 className="text-2xl font-bold text-laforet-navy">Votre projet ?</h3>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 gap-3">
                                         {timelineOptions.map((opt) => (
-                                            <button key={opt.label} onClick={() => setData({ ...data, timeline: opt.label })} className={`p-4 rounded-2xl border-2 transition-all ${data.timeline === opt.label ? 'border-laforet-cyan bg-laforet-cyan/5' : 'border-gray-50 bg-gray-50 hover:bg-gray-100'}`}>
-                                                <span className={`block text-sm font-bold ${data.timeline === opt.label ? 'text-laforet-navy' : 'text-gray-700'}`}>{opt.label}</span>
-                                                <span className="text-xs text-gray-400">{opt.sub}</span>
+                                            <button key={opt.label} onClick={() => setData({ ...data, timeline: opt.label })} className={`p-4 rounded-xl border transition-all flex items-center justify-between text-left active:scale-95 ${data.timeline === opt.label ? 'border-laforet-cyan bg-laforet-cyan/5' : 'border-gray-100 bg-white'}`}>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-base font-bold ${data.timeline === opt.label ? 'text-laforet-navy' : 'text-gray-700'}`}>{opt.label}</span>
+                                                    <span className="text-xs text-gray-400">{opt.sub}</span>
+                                                </div>
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${data.timeline === opt.label ? 'border-laforet-cyan' : 'border-gray-200'}`}>
+                                                    {data.timeline === opt.label && <div className="w-2.5 h-2.5 bg-laforet-cyan rounded-full" />}
+                                                </div>
                                             </button>
                                         ))}
                                     </div>
-                                    <textarea rows="2" placeholder="Précisions sur votre projet (optionnel)..." className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl text-base font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none transition-all resize-none" value={data.message} onChange={(e) => setData({ ...data, message: e.target.value })} />
-                                    <button onClick={next} disabled={!data.timeline} className="w-full bg-laforet-navy text-white font-bold py-5 rounded-2xl disabled:opacity-50 hover:bg-laforet-cyan transition-colors shadow-lg">Valider mon projet</button>
+                                    <button onClick={next} disabled={!data.timeline} className="w-full bg-laforet-navy text-white font-bold py-4 rounded-xl disabled:opacity-50 active:scale-95 transition-all shadow-lg text-lg flex items-center justify-center gap-2">
+                                        Continuer <ChevronRight size={20} />
+                                    </button>
                                 </motion.div>
                             )}
 
                             {step === 4 && (
-                                <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                    <div className="text-center space-y-2">
-                                        <span className="text-laforet-cyan font-bold text-sm tracking-widest uppercase">Dernière étape</span>
-                                        <h3 className="text-3xl font-bold text-laforet-navy">Prendre rendez-vous</h3>
+                                <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                                    <div className="text-center mb-2">
+                                        <h3 className="text-2xl font-bold text-laforet-navy">Recevoir l'estimation</h3>
+                                        <p className="text-sm text-gray-400">Vos coordonnées restent confidentielles.</p>
                                     </div>
                                     <div className="space-y-4">
-                                        <input type="text" placeholder="Prénom et Nom" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} />
-                                        <input type="tel" placeholder="Téléphone mobile" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none" value={data.phone} onChange={(e) => setData({ ...data, phone: e.target.value })} />
-                                        <input type="email" placeholder="Adresse email" className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent rounded-2xl font-medium focus:bg-white focus:border-laforet-cyan/30 outline-none" value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} />
+                                        <input type="text" placeholder="Votre nom" className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:bg-white focus:border-laforet-cyan outline-none" value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })} autoComplete="name" />
+                                        <input 
+                                            type="tel" 
+                                            inputMode="tel"
+                                            placeholder="Numéro de mobile" 
+                                            className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:bg-white focus:border-laforet-cyan outline-none" 
+                                            value={data.phone} 
+                                            onChange={(e) => setData({ ...data, phone: e.target.value })} 
+                                            autoComplete="tel"
+                                        />
+                                        <input type="email" inputMode="email" placeholder="Adresse email" className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium focus:bg-white focus:border-laforet-cyan outline-none" value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })} autoComplete="email" />
                                     </div>
-                                    <button onClick={handleSubmit} disabled={isSubmitting || !data.name || !data.phone || !data.email} className="w-full bg-laforet-cyan text-white font-bold py-5 rounded-2xl hover:bg-laforet-navy shadow-glow transition-all transform hover:-translate-y-0.5">{isSubmitting ? 'Envoi en cours...' : 'Prendre rendez-vous avec un conseiller'}</button>
+                                    <button onClick={handleSubmit} disabled={isSubmitting || !data.name || !data.phone || !data.email} className="w-full bg-laforet-cyan text-white font-bold py-4 rounded-xl hover:bg-laforet-navy shadow-glow active:scale-95 transition-all text-lg flex items-center justify-center gap-2">
+                                        {isSubmitting ? 'Envoi...' : 'Voir mon estimation'} <ChevronRight size={20} />
+                                    </button>
+                                    <p className="text-[10px] text-center text-gray-400">En validant, j'accepte d'être contacté pour mon projet.</p>
                                 </motion.div>
                             )}
 
                             {step === 5 && (
-                                <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
-                                    <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8"><CheckCircle2 size={48} /></div>
-                                    <h3 className="text-3xl font-bold text-laforet-navy mb-4">Demande enregistrée.</h3>
-                                    <p className="text-gray-500 text-lg max-w-sm mx-auto">Votre conseiller dédié Saint-Avertin étudie votre dossier. Vous serez contacté sous 24h.</p>
+                                <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
+                                    <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6"><CheckCircle2 size={40} /></div>
+                                    <h3 className="text-2xl font-bold text-laforet-navy mb-2">Demande reçue !</h3>
+                                    <p className="text-gray-500 text-base max-w-xs mx-auto">Votre conseiller expert étudie les éléments. Vous serez contacté très rapidement.</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -547,232 +584,210 @@
         };
 
         const TeamCard = ({ photo, name, role, desc }) => (
-            <motion.div variants={FADE_IN} className="group p-8 rounded-3xl bg-[#F9FAFB] hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-apple-hover transition-all duration-500">
-                <div className="flex items-center gap-6 mb-6">
-                    <img src={photo} alt={name} className="w-20 h-20 object-cover rounded-2xl shadow-sm group-hover:scale-105 transition-transform" />
-                    <div><h4 className="text-xl font-bold text-laforet-navy">{name}</h4><p className="text-sm font-semibold text-laforet-cyan uppercase tracking-wider">{role}</p></div>
+            <motion.div variants={FADE_IN} className="flex gap-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                <img src={photo} alt={name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+                <div>
+                    <h4 className="text-lg font-bold text-laforet-navy leading-none mb-1">{name}</h4>
+                    <p className="text-xs font-bold text-laforet-cyan uppercase mb-2">{role}</p>
+                    <p className="text-sm text-gray-500 leading-snug line-clamp-3">{desc}</p>
                 </div>
-                <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
             </motion.div>
         );
 
         const TeamSection = () => (
-            <motion.section initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.25 }} variants={SECTION_ANIM} className="py-32 px-6 bg-white border-t border-gray-100">
+            <motion.section initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={SECTION_ANIM} className="py-16 px-4 bg-[#F5F5F7]">
                 <div className="max-w-7xl mx-auto">
-                    <div className="max-w-3xl mb-16"><h2 className="text-4xl md:text-5xl font-bold text-laforet-navy mb-6 tracking-tight">Un accompagnement humain,<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#183C89] to-[#00AFED]">structuré et transparent.</span></h2></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <TeamCard name="Olivier" role="Franchisé" photo="https://i.postimg.cc/qvCXZQ65/LF2025-26-2.jpg" desc="30 ans de direction dans le bâtiment. Il cadre les mandats et sécurise les dossiers techniques." />
-                        <TeamCard name="Hélène" role="Agent Commercial" photo="https://i.postimg.cc/PfRDsYj9/LF2025-24-2.jpg" desc="30 ans d'expérience bancaire. Elle valide les financements acquéreurs." />
-                        <TeamCard name="Vincent" role="Agent Commercial" photo="https://i.postimg.cc/k4h2C3kz/LF2025-18.jpg" desc="Expert en négociation internationale. Il maximise le net vendeur." />
-                        <TeamCard name="Adrien" role="Agent Commercial" photo="https://i.postimg.cc/ThvY2RQD/LF2025-20-2.jpg" desc="Spécialiste marketing digital. Il sublime votre bien (photo/vidéo)." />
+                    <div className="mb-10 text-center">
+                        <h2 className="text-2xl md:text-4xl font-bold text-laforet-navy mb-3">L'équipe locale</h2>
+                        <p className="text-gray-500 text-sm md:text-base">Des experts de Saint-Avertin à vos côtés.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <TeamCard name="Olivier" role="Franchisé" photo="https://i.postimg.cc/qvCXZQ65/LF2025-26-2.jpg" desc="30 ans de direction dans le bâtiment. Sécurise les dossiers techniques." />
+                        <TeamCard name="Vincent" role="Agent Commercial" photo="https://i.postimg.cc/k4h2C3kz/LF2025-18.jpg" desc="Expert en négociation internationale. Maximise le net vendeur." />
+                        <TeamCard name="Hélène" role="Agent Commercial" photo="https://i.postimg.cc/PfRDsYj9/LF2025-24-2.jpg" desc="30 ans d'expérience bancaire. Valide les financements acquéreurs." />
+                        <TeamCard name="Adrien" role="Agent Commercial" photo="https://i.postimg.cc/ThvY2RQD/LF2025-20-2.jpg" desc="Spécialiste marketing digital. Sublime votre bien." />
                     </div>
                 </div>
             </motion.section>
         );
 
-        const NetworkCard = ({ icon: Icon, number, label, subtext, delay }) => (
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: delay }}
-                className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.06)] hover:border-laforet-cyan/20 transition-all duration-300 group flex flex-col items-start text-left"
-            >
-                <div className="w-12 h-12 bg-laforet-bg rounded-xl flex items-center justify-center mb-6 text-laforet-navy group-hover:bg-laforet-navy group-hover:text-white transition-colors duration-300 shadow-sm">
-                    <Icon size={22} strokeWidth={2} />
-                </div>
-                <span className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-laforet-navy tracking-tight mb-3 group-hover:scale-105 transition-transform origin-left duration-300">
-                    {number}
-                </span>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                    {label}
-                </span>
-                <p className="text-xs md:text-sm text-gray-500 font-medium leading-relaxed">
-                    {subtext}
-                </p>
-            </motion.div>
-        );
-
-        const NetworkSection = () => (
-            <section className="py-24 px-6 bg-[#F5F5F7] border-y border-gray-200 relative overflow-hidden">
-                <div className="max-w-7xl mx-auto">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-center max-w-3xl mx-auto mb-16 space-y-4"
-                    >
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-laforet-navy tracking-tight">
-                            La puissance du réseau Laforêt.
-                        </h2>
-                        <p className="text-lg text-gray-500 font-medium max-w-xl mx-auto">
-                            Un réseau national au service de votre vente locale.
-                        </p>
-                    </motion.div>
-                    
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                        <NetworkCard icon={Building2} number="720" label="Agences" subtext="Un maillage territorial dense pour une visibilité maximale." delay={0} />
-                        <NetworkCard icon={Users} number="4 800" label="Collaborateurs" subtext="Des experts formés en continu pour défendre vos intérêts." delay={0.1} />
-                        <NetworkCard icon={Award} number="N°1" label="Confiance" subtext="Élue agence immobilière préférée des Français depuis 13 ans." delay={0.2} />
-                        <NetworkCard icon={TrendingUp} number="30 000" label="Ventes / an" subtext="Une dynamique commerciale éprouvée qui rassure les acheteurs." delay={0.3} />
-                    </div>
-                </div>
-            </section>
-        );
-
-        const RadarIllustration = () => {
-            return (
-                <div className="relative w-full aspect-square max-w-xl mx-auto group">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-laforet-navy/5 to-laforet-cyan/5 rounded-[2rem] transform rotate-3 scale-95 group-hover:rotate-0 transition-transform duration-500"></div>
-                    <img 
-                        src="https://i.postimg.cc/RZGp00Yp/Generated-Image-December-31-2025-10-13AM.jpg" 
-                        alt="Carte d'expertise locale Tours" 
-                        className="relative w-full h-full object-cover rounded-[2rem] shadow-apple group-hover:shadow-glow transition-all duration-500"
-                    />
-                </div>
-            );
-        };
-
-        const LocalInfluenceSection = () => (
-            <section className="py-24 px-6 bg-white overflow-hidden">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-                    {/* Left Content */}
-                    <div className="flex flex-col gap-8">
-                        <div>
-                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-laforet-navy mb-4 tracking-tight">
-                                Saint-Avertin, Larçay : <br/>nous connaissons le marché par cœur.
-                            </h2>
-                            <p className="text-lg md:text-xl text-laforet-cyan font-medium mb-6">
-                                Une expertise construite sur le terrain, rue par rue, vente après vente.
-                            </p>
-                            <p className="text-gray-600 leading-relaxed text-lg">
-                                Implantés localement depuis plus de 25 ans, nous ne travaillons pas à partir de moyennes nationales ou d’algorithmes génériques. Nos estimations reposent sur l’analyse des prix réellement signés, des profils d’acquéreurs actifs sur le secteur et des dynamiques propres à chaque quartier.
-                            </p>
-                        </div>
-
-                        {/* Grid Proof Items */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
-                                    <Map className="w-5 h-5 text-laforet-cyan" />
-                                    <span>Analyse micro-quartier</span>
-                                </div>
-                                <p className="text-sm text-gray-500">Écoles, commerces, accès, nuisances, attractivité réelle à la revente.</p>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
-                                    <FileText className="w-5 h-5 text-laforet-cyan" />
-                                    <span>Prix réellement signés</span>
-                                </div>
-                                <p className="text-sm text-gray-500">Basés sur les dernières transactions locales, pas sur les annonces.</p>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
-                                    <Users className="w-5 h-5 text-laforet-cyan" />
-                                    <span>Demande acquéreurs active</span>
-                                </div>
-                                <p className="text-sm text-gray-500">Profils en recherche immédiate sur Saint-Avertin et communes voisines.</p>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-laforet-navy font-bold">
-                                    <Building2 className="w-5 h-5 text-laforet-cyan" />
-                                    <span>Contraintes locales</span>
-                                </div>
-                                <p className="text-sm text-gray-500">Urbanisme, servitudes, projets communaux, secteurs sensibles.</p>
-                            </div>
-                        </div>
-
-                        {/* Differentiation Box */}
-                        <div className="bg-gray-50 border border-gray-200/60 rounded-2xl p-6 relative">
-                            <div className="flex items-center gap-2 text-laforet-navy font-bold mb-2">
-                                <Lightbulb className="w-5 h-5 text-amber-500" />
-                                <span>Ce qui fait la différence</span>
-                            </div>
-                            <p className="text-sm text-gray-600 italic leading-relaxed">
-                                "Deux maisons identiques sur le papier peuvent se vendre à des prix très différents selon leur rue, leur exposition ou leur environnement immédiat. C’est cette lecture fine du terrain qui permet une estimation juste… et une vente au bon prix."
-                            </p>
-                        </div>
-
-                         <p className="text-sm text-gray-400">
-                            Cette carte illustre notre zone d’intervention réelle : un secteur que nous pratiquons au quotidien, pas une zone théorique.
-                        </p>
-                    </div>
-
-                    {/* Right Image */}
-                    <div className="bg-gray-50 rounded-[3rem] p-4 md:p-8 border shadow-inner sticky top-24">
-                        <RadarIllustration />
-                    </div>
-                </div>
-            </section>
-        );
-
         const GoogleReviewsSection = () => (
-            <section className="py-24 bg-[#F5F5F7] border-t border-gray-200 overflow-hidden relative">
-                <style>{`@keyframes marquee {0% { transform: translateX(0); } 100% { transform: translateX(-50%); }} .animate-marquee { animation: marquee 120s linear infinite; }`}</style>
-                
-                <div className="text-center mb-12 px-6">
-                    <h2 className="text-4xl font-bold text-laforet-navy mb-4">Ils nous ont fait confiance</h2>
-                    <div className="flex items-center justify-center gap-2 text-amber-500 mb-8">
+            <section className="py-16 bg-white border-t border-gray-100 relative">
+                <div className="text-center mb-10 px-6">
+                    <h2 className="text-2xl md:text-3xl font-bold text-laforet-navy mb-2">Avis Clients</h2>
+                    <div className="flex items-center justify-center gap-2 text-amber-500">
                         <div className="flex">
-                            {[...Array(5)].map((_, i) => <Star key={i} className="w-6 h-6 fill-current" />)}
+                            {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
                         </div>
-                        <span className="text-laforet-navy font-bold text-lg">4.9/5 sur Google</span>
+                        <span className="text-laforet-navy font-bold text-sm">4.9/5 sur Google</span>
                     </div>
                 </div>
 
-                <div className="flex w-max animate-marquee pb-10">
-                    {[...googleReviews, ...googleReviews].map((review, index) => (
-                        <div key={index} className="w-[300px] md:w-[400px] p-8 bg-white rounded-[2rem] shadow-apple border border-gray-100 mx-4 flex flex-col justify-between h-full relative group hover:shadow-glow transition-all duration-300">
-                           <div className="flex gap-1 mb-4">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} size={18} className="fill-amber-400 text-amber-400" />
-                                ))}
-                            </div>
-
-                            <p className="text-gray-600 italic mb-6 font-medium leading-relaxed relative z-10">"{review.comment.substring(0, 150)}..."</p>
-                            
-                            <div className="flex items-center gap-4 border-t border-gray-100 pt-6 mt-auto">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-laforet-navy to-laforet-cyan text-white flex items-center justify-center font-bold text-sm shadow-md">
-                                    {review.author[0]}
+                {/* Mobile Snap Carousel / Desktop Grid */}
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-8 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible no-scrollbar">
+                    {googleReviews.map((review, index) => (
+                        <div key={index} className="snap-center flex-shrink-0 w-[85vw] md:w-auto p-6 bg-[#F9FAFB] rounded-2xl border border-gray-100 flex flex-col justify-between">
+                            <div>
+                                <div className="flex gap-0.5 mb-3 text-amber-400">
+                                    {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
                                 </div>
-                                <div>
-                                    <p className="font-bold text-laforet-navy text-sm">{review.author}</p>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.25 17.21 15.9 18.11V21.09H19.78C22.05 19 23.49 15.92 23.49 12.275Z" fill="#4285F4"/><path d="M12 24C15.24 24 17.95 22.92 19.78 21.09L15.9 18.11C14.81 18.86 13.48 19.31 12 19.31C8.84 19.31 6.13 17.15 5.14 14.12H1.14V17.22C3.12 21.14 7.27 24 12 24Z" fill="#34A853"/><path d="M5.14 14.12C4.89 13.36 4.75 12.56 4.75 11.75C4.75 10.94 4.89 10.14 5.14 9.38V6.28H1.14C0.39 7.78 0 9.47 0 12C0 14.53 0.39 16.22 1.14 17.72L5.14 14.12Z" fill="#FBBC05"/><path d="M12 4.69C13.8 4.69 15.39 5.31 16.66 6.53L20.07 3.12C17.95 1.14 15.24 0 12 0C7.27 0 3.12 2.86 1.14 6.78L5.14 9.88C6.13 6.85 8.84 4.69 12 4.69Z" fill="#EA4335"/></svg>
-                                         <span className="text-xs text-gray-500 font-semibold">Avis Google</span>
-                                    </div>
-                                </div>
+                                <p className="text-gray-600 text-sm italic mb-4 leading-relaxed">"{review.comment}"</p>
                             </div>
+                            <p className="font-bold text-laforet-navy text-xs uppercase">{review.author}</p>
                         </div>
                     ))}
                 </div>
-
-                <div className="text-center mt-8 pb-12">
+                
+                <div className="text-center mt-4">
                      <a 
                         href="https://share.google/MfdTpW9PIsacXfgmq" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 px-8 py-4 bg-white text-laforet-navy border border-gray-200 rounded-full font-bold shadow-apple hover:shadow-glow hover:text-laforet-cyan hover:scale-105 transition-all duration-300 group"
+                        className="inline-flex items-center gap-2 text-laforet-cyan font-bold text-sm hover:underline"
                     >
-                        <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.25 17.21 15.9 18.11V21.09H19.78C22.05 19 23.49 15.92 23.49 12.275Z" fill="#4285F4"/><path d="M12 24C15.24 24 17.95 22.92 19.78 21.09L15.9 18.11C14.81 18.86 13.48 19.31 12 19.31C8.84 19.31 6.13 17.15 5.14 14.12H1.14V17.22C3.12 21.14 7.27 24 12 24Z" fill="#34A853"/><path d="M5.14 14.12C4.89 13.36 4.75 12.56 4.75 11.75C4.75 10.94 4.89 10.14 5.14 9.38V6.28H1.14C0.39 7.78 0 9.47 0 12C0 14.53 0.39 16.22 1.14 17.72L5.14 14.12Z" fill="#FBBC05"/><path d="M12 4.69C13.8 4.69 15.39 5.31 16.66 6.53L20.07 3.12C17.95 1.14 15.24 0 12 0C7.27 0 3.12 2.86 1.14 6.78L5.14 9.88C6.13 6.85 8.84 4.69 12 4.69Z" fill="#EA4335"/></svg>
-                        <span>Voir tous les avis sur Google</span>
+                        Lire tous les avis Google <ArrowRight size={16} />
                     </a>
                 </div>
             </section>
         );
 
+        const LocalInfluenceSection = ({ onCtaClick }) => (
+            <section className="py-16 md:py-24 px-4 bg-[#F5F5F7] overflow-hidden">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-12 md:mb-16">
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-laforet-navy mb-4 leading-tight">
+                            L'Observatoire de l'Immobilier : <br className="hidden md:block"/>Saint-Avertin & Larçay
+                        </h2>
+                        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                            Ne vous fiez pas aux estimations nationales. Voici la réalité de notre marché local au 1er janvier 2026.
+                        </p>
+                    </div>
+
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 md:pb-0 md:grid md:grid-cols-3 md:gap-8 no-scrollbar px-2">
+                        
+                        {/* CARD 1: PRIX */}
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
+                                    <TrendingUp size={24} />
+                                </div>
+                                <h3 className="font-bold text-laforet-navy text-xl">Prix au m² Moyen</h3>
+                            </div>
+                            <div className="space-y-4 mb-8 flex-grow">
+                                <div className="flex justify-between items-baseline border-b border-gray-50 pb-3">
+                                    <span className="text-gray-600 font-medium">Saint-Avertin</span>
+                                    <span className="text-xl font-bold text-laforet-navy">~2 950 €/m²</span>
+                                </div>
+                                <div className="flex justify-between items-baseline pt-1">
+                                    <span className="text-gray-600 font-medium">Larçay</span>
+                                    <span className="text-xl font-bold text-laforet-navy">~2 650 €/m²</span>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
+                                <p className="text-sm text-gray-600 italic leading-snug">
+                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
+                                    "Une stabilité rassurante avec une hausse de +3,7 % sur 5 ans à Larçay."
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* CARD 2: INDICATEURS */}
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
+                                    <CalendarClock size={24} />
+                                </div>
+                                <h3 className="font-bold text-laforet-navy text-xl">Indicateurs de Vente</h3>
+                            </div>
+                            <div className="space-y-5 mb-8 flex-grow">
+                                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                                    <span className="text-gray-600 font-medium">Délai moyen</span>
+                                    <span className="text-xl font-bold text-laforet-navy">89 jours</span>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-gray-600 font-medium">Tension</span>
+                                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full uppercase tracking-wide">Forte</span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-2">Comptez 8 acheteurs actifs pour 1 bien disponible.</p>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
+                                <p className="text-sm text-gray-600 italic leading-snug">
+                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
+                                    "Le marché favorise les vendeurs ayant une stratégie de prix cohérente dès le lancement."
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* CARD 3: ACQUEREURS */}
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
+                                    <Users size={24} />
+                                </div>
+                                <h3 className="font-bold text-laforet-navy text-xl">Profil Acquéreurs</h3>
+                            </div>
+                            <div className="space-y-5 mb-8 flex-grow">
+                                <div className="border-b border-gray-50 pb-3">
+                                    <span className="block text-gray-600 font-medium mb-1">Cible prioritaire</span>
+                                    <span className="text-lg font-bold text-laforet-navy block">Familles & Cadres</span>
+                                    <span className="text-xs text-gray-400">Revenu médian > 38k€/an</span>
+                                </div>
+                                <div>
+                                    <span className="block text-gray-600 font-medium mb-1">Recherche Top 1</span>
+                                    <span className="text-sm text-gray-700 leading-snug">Maisons 4-6 pièces, jardin & performance énergétique optimisée.</span>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
+                                <p className="text-sm text-gray-600 italic leading-snug">
+                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
+                                    "72 % des habitants de Saint-Avertin sont propriétaires de leur résidence principale."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-12 md:mt-16 text-center max-w-3xl mx-auto px-4">
+                        <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                            "Ces chiffres sont des moyennes. Votre maison est unique. Un jardin exposé sud ou une rénovation récente peut valoriser votre bien de <span className="font-bold text-laforet-navy">+15 % par rapport à la moyenne</span> de la rue."
+                        </p>
+                        <button 
+                            onClick={onCtaClick}
+                            className="inline-flex items-center justify-center gap-2 bg-laforet-navy text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:bg-laforet-navy/90 transition-all transform active:scale-95 w-full md:w-auto text-lg"
+                        >
+                            Recevoir mon analyse de marché personnalisée <ArrowRight size={20} />
+                        </button>
+                    </div>
+                </div>
+            </section>
+        );
+
         const App = () => {
-            const scrollToForm = () => document.getElementById('audit').scrollIntoView({ behavior: 'smooth' });
+            const scrollToForm = () => {
+                const formEl = document.getElementById('audit');
+                if (formEl) {
+                     const offset = 70;
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = formEl.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                }
+            };
+            
             return (
-                <div className="min-h-screen">
+                <div className="min-h-screen bg-[#F5F5F7]">
                     <Navbar />
                     <Hero onStart={scrollToForm} />
                     <FormEngine />
                     <TeamSection />
-                    <NetworkSection />
-                    <LocalInfluenceSection />
+                    <LocalInfluenceSection onCtaClick={scrollToForm} />
                     <GoogleReviewsSection />
-                    <footer className="bg-white py-12 text-center text-sm text-gray-400 border-t flex justify-center gap-8"><p>&copy; 2025 Laforêt Saint-Avertin.</p><a href="#">Mentions Légales</a></footer>
+                    <footer className="bg-white py-8 text-center text-xs text-gray-400 border-t pb-20 md:pb-8">
+                        <p>&copy; 2025 Laforêt Saint-Avertin.</p>
+                        <a href="#" className="underline mt-1 block">Mentions Légales</a>
+                    </footer>
                 </div>
             );
         };
