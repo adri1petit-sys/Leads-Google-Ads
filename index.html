@@ -154,7 +154,7 @@
             Phone, MapPin, Home, Building2, ArrowRight, CheckCircle2, 
             Users, Star, TrendingUp, CalendarClock, ChevronRight, 
             Database, Search, Check, AlertCircle, Loader2, Lock, FileBarChart,
-            Download, BarChart3, ShieldCheck, FileText
+            Download, BarChart3, ShieldCheck, FileText, Smartphone
         } from 'lucide-react';
 
         // --- DATA ---
@@ -201,6 +201,7 @@
             >
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
+                        {/* Logo - Taille réduite sur mobile */}
                         <img src="https://i.postimg.cc/PJbhCjdD/logo-devant-flocage.png" alt="Laforêt" className="h-6 md:h-10 w-auto object-contain" />
                          <div className="hidden md:flex flex-col">
                             <span className="text-sm font-bold text-laforet-navy tracking-tight">AGENCE LaFORÊT</span>
@@ -212,8 +213,8 @@
                         <Phone size={18} />
                         <span>02 46 46 63 80</span>
                     </a>
-                    {/* Mobile Button - Minimal Round */}
-                    <a href="tel:0246466380" className="md:hidden w-10 h-10 rounded-full bg-laforet-navy text-white flex items-center justify-center shadow-none">
+                    {/* Mobile Button - Minimal Round Navy Blue */}
+                    <a href="tel:0246466380" className="md:hidden w-10 h-10 rounded-full bg-laforet-navy text-white flex items-center justify-center shadow-md hover:bg-opacity-90 active:scale-95 transition-transform">
                         <Phone size={20} />
                     </a>
                 </div>
@@ -222,22 +223,7 @@
 
         const Methodology = ({ isMobile }) => {
             if (isMobile) {
-                return (
-                    <div className="grid grid-cols-3 gap-2 mt-8 w-full">
-                        <div className="flex flex-col items-center gap-1.5 p-2 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
-                            <Database size={20} className="text-white" />
-                            <span className="text-[10px] text-white font-medium leading-tight">Données<br/>État (DVF)</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-1.5 p-2 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
-                            <Building2 size={20} className="text-white" />
-                            <span className="text-[10px] text-white font-medium leading-tight">Ventes<br/>Agence</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-1.5 p-2 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
-                            <Check size={20} className="text-white" />
-                            <span className="text-[10px] text-white font-medium leading-tight">Vos<br/>Atouts</span>
-                        </div>
-                    </div>
-                );
+                return null;
             }
 
             return (
@@ -273,11 +259,11 @@
                     <img src="https://i.postimg.cc/qMVcnC6Y/Generated-Image-December-31-2025-11-37AM.jpg" alt="Terrasse" className="w-full h-full object-cover object-center" />
                     {/* DESKTOP OVERLAY */}
                     <div className="hidden md:block absolute inset-0 bg-black/50" />
-                    {/* MOBILE OVERLAY (GRADIENT PROGRESSIF) */}
-                    <div className="md:hidden absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/25" />
+                    {/* MOBILE OVERLAY - Stronger Contrast */}
+                    <div className="md:hidden absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/90" />
                 </div>
 
-                {/* Visible ONLY on Desktop */}
+                {/* Visible ONLY on Desktop - Mobile is handled by FormEngine Step 0 to allow scroll */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="hidden md:flex relative z-20 w-full max-w-5xl mx-auto px-4 text-center flex-col justify-center h-full pt-20 pb-20">
                     <div className="inline-flex items-center justify-center gap-2 bg-laforet-cyan/20 backdrop-blur-sm border border-laforet-cyan/30 rounded-full px-4 py-1.5 mb-6 mx-auto">
                         <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -298,7 +284,7 @@
         );
 
         // --- CUSTOM ADDRESS COMPONENT ---
-        const AddressAutocomplete = ({ onSelect, mobileMode = false }) => {
+        const AddressAutocomplete = ({ onSelect, mobileMode = false, placeholder }) => {
             const [query, setQuery] = useState("");
             const [suggestions, setSuggestions] = useState([]);
             const [isOpen, setIsOpen] = useState(false);
@@ -326,7 +312,6 @@
                             console.error("Erreur API Adresse", e);
                         }
                     };
-                    // Debounce simple
                     const timeoutId = setTimeout(fetchAddress, 300);
                     return () => clearTimeout(timeoutId);
                 } else {
@@ -349,14 +334,14 @@
 
             return (
                 <div ref={wrapperRef} className="relative group w-full">
-                    {/* Search Icon Hidden on Mobile for cleaner look? No, kept for affordance but minimal */}
+                    {/* Search Icon */}
                     <Search className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${mobileMode ? 'text-gray-500' : 'text-gray-400 group-focus-within:text-laforet-cyan'}`} size={20} />
                     <input 
                         type="text" 
-                        placeholder="Saisissez votre adresse..." 
+                        placeholder={placeholder || (mobileMode ? "Entrez votre adresse ici..." : "Saisissez votre adresse...")} 
                         className={`w-full pl-11 pr-4 bg-white outline-none transition-all ${
                             mobileMode 
-                            ? 'py-4 rounded-xl text-base font-medium shadow-sm border border-gray-200' 
+                            ? 'py-4 rounded-xl text-base font-bold text-gray-800 shadow-xl border-0 ring-4 ring-black/5' 
                             : 'py-5 border-0 md:border md:border-gray-200 rounded-xl text-lg font-medium focus:ring-4 focus:ring-laforet-cyan/20 focus:border-laforet-cyan shadow-xl md:shadow-lg'
                         }`}
                         value={query}
@@ -365,7 +350,7 @@
                     />
                     
                     {isOpen && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden max-h-64 overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden max-h-64 overflow-y-auto text-left">
                             {suggestions.map((s, i) => (
                                 <div 
                                     key={i} 
@@ -423,17 +408,13 @@
             };
 
             const next = () => {
-                // Scroll only on Desktop. Mobile is full screen.
-                if (window.innerWidth >= 768) {
-                    window.scrollTo({ top: document.getElementById('simulator').offsetTop - 80, behavior: 'smooth' });
-                }
                 setStep(s => s + 1);
+                // Scroll top on next step for better UX
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            // --- LE CERVEAU ESTIMATEUR (LOGIQUE INTERNE) ---
+            // --- ALGORITHME D'ESTIMATION (Logic preserved) ---
             const calculateEstimation = () => {
-                // 1. DÉTERMINATION DU MICRO-MARCHÉ (Section 3)
-                // Analyse syntaxique de l'adresse pour déterminer le quartier
                 const addressStr = (data.address + " " + data.city).toLowerCase();
                 let neighborhood = 'st_avertin_default';
 
@@ -449,8 +430,6 @@
                     neighborhood = 'vieux_st_avertin';
                 }
 
-                // 2. PRIX DE RÉFÉRENCE (Section 3.1 PDF)
-                // Données Data 2025/2026
                 const priceMatrix = {
                     cange: { maison: 2985, appt: 2618 },
                     grand_village: { maison: 2700, appt: 2369 },
@@ -463,56 +442,36 @@
                 const typeKey = data.type === 'Appartement' ? 'appt' : 'maison';
                 const basePriceM2 = priceMatrix[neighborhood][typeKey];
 
-                // 3. SURFACE PONDÉRÉE & CALCUL BRUT (Section 2.1 & 2.2)
                 let totalSurface = parseInt(data.surface) || 0;
                 let weightedPrice = basePriceM2 * totalSurface;
 
-                // 4. COEFFICIENTS QUALITATIFS (Section 2.2 & 2.4 - Hédonisme)
                 let qualityCoeff = 0;
-
-                // Terrasse/Balcon (Pondération approx +5%)
                 if (data.boosters.includes("Terrasse / Balcon")) qualityCoeff += 0.05;
-                // Jardin sans vis-à-vis (Hédonisme fort)
                 if (data.boosters.includes("Jardin sans vis-à-vis")) qualityCoeff += 0.08;
-                // Calme absolu (Valeur refuge)
                 if (data.boosters.includes("Calme absolu")) qualityCoeff += 0.05;
-                // Proximité (Walkability Onze Arpents)
                 if (data.boosters.includes("Proche Commerces")) qualityCoeff += 0.03;
-                // DPE A/B/C (Valeur Verte)
                 if (data.boosters.includes("DPE A/B/C")) qualityCoeff += 0.05;
                 
-                // Garage : Valeur Forfaitaire (+15 000€ selon PDF)
                 let fixedBonus = 0;
                 if (data.boosters.includes("Garage / Parking")) fixedBonus += 15000;
-                // Piscine (Non demandé explicitement mais si "Cuisine récente" + "Jardin" on peut supposer un standing)
-                // On reste prudent, on n'ajoute pas de piscine fantôme.
 
-                // 5. COEFFICIENTS DE VÉTUSTÉ (Section 2.1)
                 let vetusteCoeff = 0;
                 if (data.flaws.includes("Travaux à prévoir")) vetusteCoeff += 0.10;
-                if (data.flaws.includes("Rue passante")) vetusteCoeff += 0.05; // Nuisance acoustique
+                if (data.flaws.includes("Rue passante")) vetusteCoeff += 0.05; 
                 if (data.flaws.includes("Rez-de-chaussée (Appt)")) vetusteCoeff += 0.05;
                 if (data.flaws.includes("Électricité ancienne")) vetusteCoeff += 0.05;
                 
-                // Simulation DPE F/G si cumul de défauts
                 if (data.flaws.includes("Travaux à prévoir") && data.flaws.includes("Électricité ancienne")) {
-                    vetusteCoeff += 0.10; // Malus Passoire Thermique
+                    vetusteCoeff += 0.10; 
                 }
 
-                // CALCUL FINAL FORMULE MAITRESSE
-                // P_est = (S_pond * P_ref) * (1 + Coeff_qual) * (1 - Coeff_vetuste) + FixedBonus
                 let estimatedPrice = (weightedPrice * (1 + qualityCoeff) * (1 - vetusteCoeff)) + fixedBonus;
 
-                // 6. GESTION DE L'INCERTITUDE & FOURCHETTE (Section 2.5 & 4.1)
-                // STRATÉGIE "GAP DE CURIOSITÉ" : Indice de confiance toujours faible (2/5)
-                // pour inciter au RDV physique.
-                let confidenceIndex = 2; // FORCE A 2
-                
-                let rangePercentage = 0.08; // Base +/- 8%
+                let confidenceIndex = 2; 
+                let rangePercentage = 0.08; 
 
-                // Si bien atypique ou "Travaux" -> On élargit la fourchette
                 if (data.flaws.includes("Travaux à prévoir") || neighborhood === 'cange') {
-                    rangePercentage = 0.12; // +/- 12%
+                    rangePercentage = 0.12; 
                 }
 
                 const low = Math.round((estimatedPrice * (1 - rangePercentage)) / 1000) * 1000;
@@ -527,7 +486,7 @@
                 };
             };
 
-            // Animation de chargement Step 4 (initiale)
+            // Animation Step 4
             useEffect(() => {
                 if (step === 4) {
                     let progress = 0;
@@ -544,15 +503,14 @@
                 }
             }, [step]);
 
-            // Animation de chargement FINALE (Step 6) - Séquence "Cerveau"
+            // Animation Step 6
             useEffect(() => {
                 if (step === 6) {
                     const texts = [
-                        "Connexion Base DVF (Notaires)...",
-                        "Analyse des micro-quartiers (Cangé, Larçay...)...",
-                        "Calcul des coefficients hédonistes...",
-                        "Vérification des indices de tension...",
-                        "Génération de la fourchette de confiance..."
+                        "Connexion Base DVF...",
+                        "Analyse des micro-quartiers...",
+                        "Calcul des coefficients...",
+                        "Finalisation..."
                     ];
                     let i = 0;
                     const interval = setInterval(() => {
@@ -565,10 +523,9 @@
                         const results = calculateEstimation();
                         setResultData(results);
                         setStep(7);
-                        if (window.innerWidth >= 768) {
-                            window.scrollTo({ top: document.getElementById('simulator').offsetTop - 80, behavior: 'smooth' });
-                        }
-                    }, 4000); // 4s pour crédibiliser le calcul complexe
+                        // Results page: ensure top of page
+                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 3500);
 
                     return () => {
                         clearInterval(interval);
@@ -580,9 +537,7 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
-                
                 const encode = (data) => Object.keys(data).map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key])).join("&");
-                
                 fetch("/", {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -590,12 +545,8 @@
                 }).then(() => {
                     if (window.gtag) window.gtag('event', 'conversion', { 'send_to': 'AW-11283228533/la_CCNLGi9sbEPXOoYQq' });
                 }).catch(err => console.error("Erreur envoi formulaire:", err));
-
                 setIsSubmitting(false);
                 setStep(6); 
-                if (window.innerWidth >= 768) {
-                    window.scrollTo({ top: document.getElementById('simulator').offsetTop - 80, behavior: 'smooth' });
-                }
             };
 
             const BoostersList = ["Cuisine récente", "Terrasse / Balcon", "Jardin sans vis-à-vis", "Garage / Parking", "Calme absolu", "Proche Commerces", "DPE A/B/C"];
@@ -603,102 +554,91 @@
 
             return (
                 <section id="simulator" className={`
-                    ${step === 0 ? 'md:relative md:z-30 md:-mt-10 md:pb-20 absolute top-0 inset-x-0 min-h-screen flex flex-col justify-end md:justify-center z-20' : ''}
-                    ${step > 0 ? 'md:relative md:z-30 md:-mt-10 md:pb-20 absolute inset-0 bg-white z-50 flex flex-col' : ''}
+                    /* DESKTOP: Integrated card style */
+                    ${step === 0 ? 'md:relative md:z-30 md:-mt-32 md:pb-24' : 'md:relative md:z-30 md:-mt-10 md:pb-20'}
+                    
+                    /* MOBILE: */
+                    /* Step 0: Transparent overlay allowing scroll to other sections */
+                    ${step === 0 ? 'absolute top-0 inset-x-0 min-h-screen z-20 flex flex-col justify-end pb-12 md:pb-20' : ''}
+                    /* Step 1+: Fixed full screen overlay to focus user on form */
+                    ${step > 0 ? 'fixed inset-0 bg-white z-[60] flex flex-col overflow-y-auto' : ''}
                 `}>
                     <div className={`
-                        ${step > 0 ? 'h-full flex flex-col' : ''}
-                        md:max-w-xl md:mx-auto md:bg-white md:rounded-2xl md:shadow-2xl md:overflow-hidden md:border md:border-gray-100 md:block
+                        ${step > 0 ? 'min-h-full flex flex-col' : ''}
+                        md:max-w-xl md:mx-auto md:bg-white md:rounded-2xl md:shadow-2xl md:shadow-laforet-navy/20 md:overflow-hidden md:border md:border-gray-100 md:block
                         w-full
                     `}>
                         
-                        {/* HEADER DU CARD (Desktop Only ou Mobile Step > 0) */}
-                        <div className={`
-                             ${step === 0 ? 'hidden md:flex' : 'flex'}
-                             bg-white md:bg-gray-50 border-b border-gray-100 px-6 py-4 items-center justify-between shrink-0
-                        `}>
-                            <div className="flex items-center gap-2">
-                                <span className="flex h-2.5 w-2.5 relative">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                                </span>
-                                <span className="text-xs font-bold text-laforet-navy uppercase tracking-wider">Simulateur en ligne</span>
-                            </div>
-                            <div className="text-xs text-gray-400 font-medium hidden md:block">Déjà +150 estimations</div>
-                        </div>
-
-                        {step < 6 && (
-                            <div className="w-full bg-gray-100 h-1 md:h-2 shrink-0 hidden md:block">
-                                <motion.div 
-                                    className="bg-laforet-cyan h-full" 
-                                    initial={{ width: 0 }} 
-                                    animate={{ width: `${(step / 5) * 100}%` }} 
-                                />
+                        {/* HEADER DU CARD (Progress Bar) */}
+                        {step > 0 && step < 7 && (
+                            <div className="sticky top-0 bg-white z-10">
+                                <div className="flex bg-gray-50 border-b border-gray-100 px-6 py-4 items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-laforet-navy uppercase tracking-wider">Étape {step}/5</span>
+                                    </div>
+                                    <a href="/" className="text-gray-400"><Search size={16}/></a>
+                                </div>
+                                <div className="w-full bg-gray-100 h-1">
+                                    <motion.div 
+                                        className="bg-laforet-cyan h-full" 
+                                        initial={{ width: 0 }} 
+                                        animate={{ width: `${(step / 5) * 100}%` }} 
+                                    />
+                                </div>
                             </div>
                         )}
 
                         <div className={`
-                            p-6 md:p-8 flex-grow flex flex-col justify-center relative
-                            ${step === 0 ? 'bg-transparent justify-end pb-10' : 'bg-white'}
+                            md:p-8 relative flex-grow
+                            ${step === 0 ? 'px-4' : 'p-6'}
                         `}>
-                            
-                            <AnimatePresence>
-                                {isSimulatingCalc && (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-white/80 backdrop-blur-[1px] flex items-center justify-center">
-                                        <div className="flex items-center gap-2 bg-laforet-navy text-white px-4 py-2 rounded-full shadow-lg">
-                                            <Loader2 className="animate-spin" size={16} />
-                                            <span className="text-xs font-bold">Mise à jour du prix...</span>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
                             <AnimatePresence mode="wait">
                                 {step === 0 && (
-                                    <motion.div key="step0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 md:space-y-6 w-full">
+                                    <motion.div key="step0" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full">
                                         
-                                        {/* MOBILE HERO CONTENT */}
-                                        <div className="md:hidden flex flex-col items-center text-center">
-                                            {/* Badge */}
-                                            <div className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 mb-4">
-                                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-                                                <span className="text-white text-[10px] font-bold tracking-wide uppercase">Données Ventes 2025/2026 à jour</span>
+                                        {/* MOBILE HERO CONTENT - UPDATED CRO DESIGN */}
+                                        <div className="md:hidden flex flex-col items-center text-center justify-center h-full pt-24 pb-8">
+                                            
+                                            {/* Surtitre Pill */}
+                                            <div className="bg-white px-4 py-1.5 rounded-full mb-6 shadow-lg border border-gray-100">
+                                                <span className="text-laforet-navy text-xs font-bold uppercase tracking-widest">Saint-Avertin & Larçay</span>
                                             </div>
 
-                                            {/* Title */}
-                                            <h1 className="text-[28px] leading-[1.2] font-extrabold text-white tracking-tight mb-3">
-                                                Quelle est la valeur de votre bien selon les <span className="text-laforet-cyan">dernières ventes de l'État</span> ?
+                                            {/* H1 - Massive Impact */}
+                                            <h1 className="text-[2.6rem] font-extrabold text-white leading-none mb-4 drop-shadow-lg">
+                                                Quelle est la valeur <span className="text-laforet-cyan">ACTUELLE</span> de votre bien ?
                                             </h1>
 
                                             {/* Subtitle */}
-                                            <p className="text-sm text-white/85 max-w-xs mx-auto mb-6 leading-relaxed">
-                                                Estimation instantanée basée sur les transactions réelles de votre rue à Saint-Avertin ou Larçay.
+                                            <p className="text-gray-100 text-lg leading-snug mb-8 font-medium drop-shadow-md opacity-95 px-2">
+                                                Obtenez votre fourchette de prix instantanée basée sur les ventes réelles du quartier.
                                             </p>
 
-                                            {/* MAIN ACTION: INPUT + BUTTON */}
-                                            <div className="w-full bg-white rounded-2xl p-2 shadow-2xl space-y-2">
-                                                <AddressAutocomplete onSelect={handleAddressSelect} mobileMode={true} />
-                                                <button onClick={next} disabled={!data.address} className="w-full bg-laforet-navy text-white font-bold h-[52px] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex justify-center gap-2 items-center text-base shadow-lg">
-                                                    Lancer mon estimation en ligne <ArrowRight size={20} />
+                                            {/* MAGNETIC INPUT UNIT */}
+                                            <div className="w-full space-y-3 bg-black/20 backdrop-blur-md p-4 rounded-3xl border border-white/20 shadow-2xl">
+                                                <AddressAutocomplete 
+                                                    onSelect={handleAddressSelect} 
+                                                    mobileMode={true} 
+                                                    placeholder="Commencez par saisir votre adresse..." 
+                                                />
+                                                <button onClick={next} disabled={!data.address} className="w-full bg-laforet-navy text-white font-bold h-[56px] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex justify-center gap-2 items-center text-lg shadow-xl uppercase tracking-wide">
+                                                    Estimer Gratuitement <ChevronRight size={24} strokeWidth={3} />
                                                 </button>
                                             </div>
-
-                                            {/* METHODOLOGY (Mobile Compact) */}
-                                            <Methodology isMobile={true} />
                                         </div>
 
-                                        {/* DESKTOP CONTENT (Original) */}
-                                        <div className="text-center space-y-2 hidden md:block">
-                                            <h3 className="text-2xl md:text-3xl font-bold text-laforet-navy">Où se situe le bien ?</h3>
-                                            <p className="text-sm text-gray-500">Nous analysons les ventes DVF dans un rayon de 500m.</p>
+                                        {/* DESKTOP CONTENT (Optimized) */}
+                                        <div className="text-center space-y-1 hidden md:block mb-6">
+                                            <p className="text-xs font-bold text-laforet-cyan uppercase tracking-wider mb-2">Estimation Intelligente</p>
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Commençons par situer précisément votre bien</h3>
+                                            <p className="text-gray-500 text-sm">Analyse comparative des ventes DVF 2025 à Saint-Avertin.</p>
                                         </div>
                                         
-                                        <div className="hidden md:block">
+                                        <div className="hidden md:block mt-6 mb-6">
                                             <AddressAutocomplete onSelect={handleAddressSelect} />
                                         </div>
-
                                         {data.address && (
-                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="hidden md:flex bg-blue-50 border border-blue-100 rounded-xl p-4 items-center gap-3">
+                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="hidden md:flex bg-blue-50 border border-blue-100 rounded-xl p-4 items-center gap-3 mb-6">
                                                 <div className="bg-white p-2 rounded-full text-green-500 shadow-sm"><CheckCircle2 size={20} /></div>
                                                 <div>
                                                     <p className="font-bold text-laforet-navy text-sm">{data.address}</p>
@@ -706,7 +646,6 @@
                                                 </div>
                                             </motion.div>
                                         )}
-
                                         <button onClick={next} disabled={!data.address} className="hidden md:flex w-full bg-laforet-navy text-white font-bold py-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg active:scale-95 transition-all justify-center gap-2 items-center text-lg shadow-xl border border-white/20 md:border-0">
                                             Commencer <ArrowRight size={24} />
                                         </button>
@@ -714,259 +653,191 @@
                                 )}
 
                                 {step === 1 && (
-                                    <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex flex-col h-full justify-center">
-                                        <h3 className="text-3xl md:text-2xl font-bold text-laforet-navy text-center">Type de bien ?</h3>
+                                    <motion.div key="step1" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="flex flex-col h-full gap-8">
+                                        <div className="text-center">
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Type de bien</h3>
+                                            <p className="text-gray-500 text-sm mt-1">Maison ou Appartement ?</p>
+                                        </div>
                                         
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <button onClick={() => setData({...data, type: 'Maison'})} className={`p-6 md:p-5 rounded-2xl border-2 flex items-center justify-center gap-4 transition-all ${data.type === 'Maison' ? 'border-laforet-cyan bg-cyan-50 text-laforet-navy shadow-inner' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
-                                                <Home size={32} strokeWidth={1.5} /> <span className="font-bold text-xl">Maison</span>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <button onClick={() => { setData({...data, type: 'Maison'}); next(); }} className={`p-6 rounded-2xl border-2 flex flex-row items-center justify-start gap-6 transition-all shadow-sm ${data.type === 'Maison' ? 'border-laforet-cyan bg-cyan-50/50 text-laforet-navy' : 'border-gray-100 bg-white text-gray-500'}`}>
+                                                <div className="bg-white p-3 rounded-full shadow-sm"><Home size={32} strokeWidth={1.5} className="text-laforet-navy" /></div>
+                                                <span className="font-bold text-xl">Maison Individuelle</span>
                                             </button>
-                                            <button onClick={() => setData({...data, type: 'Appartement'})} className={`p-6 md:p-5 rounded-2xl border-2 flex items-center justify-center gap-4 transition-all ${data.type === 'Appartement' ? 'border-laforet-cyan bg-cyan-50 text-laforet-navy shadow-inner' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
-                                                <Building2 size={32} strokeWidth={1.5} /> <span className="font-bold text-xl">Appartement</span>
+                                            <button onClick={() => { setData({...data, type: 'Appartement'}); next(); }} className={`p-6 rounded-2xl border-2 flex flex-row items-center justify-start gap-6 transition-all shadow-sm ${data.type === 'Appartement' ? 'border-laforet-cyan bg-cyan-50/50 text-laforet-navy' : 'border-gray-100 bg-white text-gray-500'}`}>
+                                                <div className="bg-white p-3 rounded-full shadow-sm"><Building2 size={32} strokeWidth={1.5} className="text-laforet-navy" /></div>
+                                                <span className="font-bold text-xl">Appartement</span>
                                             </button>
+                                        </div>
+                                        
+                                        <div className="mt-auto">
+                                            <button onClick={next} className="w-full py-4 text-gray-400 font-medium text-sm">Passer cette étape (Défaut: Maison)</button>
+                                        </div>
+                                    </motion.div>
+                                )}
+
+                                {step === 2 && ( // Changed Step 2 to Surface/Rooms to match flow description "Type, Surfaces, Détails"
+                                     <motion.div key="stepSurface" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="flex flex-col h-full gap-8">
+                                        <div className="text-center">
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Dimensions</h3>
+                                            <p className="text-gray-500 text-sm mt-1">Pour affiner le prix au m²</p>
                                         </div>
 
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-400 md:text-gray-700 mb-2 uppercase tracking-wide">Surface (m²)</label>
-                                                <input type="number" inputMode="numeric" pattern="[0-9]*" value={data.surface} onChange={(e) => setData({...data, surface: e.target.value})} className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-cyan font-bold text-2xl text-center md:text-left" placeholder="0" />
+                                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Surface Habitable</label>
+                                                <div className="relative">
+                                                    <input type="number" inputMode="numeric" pattern="[0-9]*" value={data.surface} onChange={(e) => setData({...data, surface: e.target.value})} className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-cyan font-bold text-3xl text-center text-laforet-navy" placeholder="0" autoFocus />
+                                                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">m²</span>
+                                                </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-400 md:text-gray-700 mb-2 uppercase tracking-wide">Pièces</label>
-                                                <input type="number" inputMode="numeric" pattern="[0-9]*" value={data.rooms} onChange={(e) => setData({...data, rooms: e.target.value})} className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-cyan font-bold text-2xl text-center md:text-left" placeholder="0" />
-                                            </div>
-                                        </div>
-
-                                        <button onClick={next} disabled={!data.surface || !data.rooms} className="mt-auto md:mt-0 w-full bg-laforet-navy text-white font-bold py-5 rounded-xl disabled:opacity-50 transition-all text-lg shadow-md">Continuer</button>
-                                    </motion.div>
-                                )}
-
-                                {step === 2 && (
-                                    <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 flex flex-col h-full justify-center">
-                                        <div className="text-center mb-4">
-                                            <h3 className="text-3xl md:text-2xl font-bold text-laforet-navy">Ses Atouts</h3>
-                                            <p className="text-sm text-gray-500 mt-2">Qu'est-ce qui le rend unique ?</p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-3 overflow-y-auto max-h-[50vh] md:max-h-none pr-1">
-                                            {BoostersList.map(item => (
-                                                <button key={item} onClick={() => toggleItem('boosters', item)} className={`flex items-center justify-between p-5 rounded-xl border transition-all ${data.boosters.includes(item) ? 'border-green-500 bg-green-50 text-green-800 font-bold shadow-sm' : 'border-gray-100 bg-white hover:bg-gray-50 text-gray-600'}`}>
-                                                    <span className="text-lg">{item}</span>
-                                                    {data.boosters.includes(item) ? <CheckCircle2 size={24} className="text-green-500" /> : <div className="w-6 h-6 rounded-full border border-gray-300" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button onClick={next} className="mt-auto md:mt-0 w-full bg-laforet-navy text-white font-bold py-5 rounded-xl transition-all text-lg shadow-md">Valider</button>
-                                    </motion.div>
-                                )}
-
-                                {step === 3 && (
-                                    <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6 flex flex-col h-full justify-center">
-                                        <div className="text-center mb-4">
-                                            <h3 className="text-3xl md:text-2xl font-bold text-laforet-navy">Défauts ?</h3>
-                                            <p className="text-sm text-gray-500 mt-2">Soyons transparents.</p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-3 overflow-y-auto max-h-[50vh] md:max-h-none pr-1">
-                                            {FlawsList.map(item => (
-                                                <button key={item} onClick={() => toggleItem('flaws', item)} className={`flex items-center justify-between p-5 rounded-xl border transition-all ${data.flaws.includes(item) ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold shadow-sm' : 'border-gray-100 bg-white hover:bg-gray-50 text-gray-600'}`}>
-                                                    <span className="text-lg">{item}</span>
-                                                    {data.flaws.includes(item) ? <AlertCircle size={24} className="text-amber-500" /> : <div className="w-6 h-6 rounded-full border border-gray-300" />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button onClick={next} className="mt-auto md:mt-0 w-full bg-laforet-navy text-white font-bold py-5 rounded-xl transition-all text-lg shadow-md">Calculer</button>
-                                    </motion.div>
-                                )}
-
-                                {step === 4 && (
-                                    <motion.div key="step4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-10 bg-gray-900 md:rounded-2xl flex flex-col items-center justify-center text-center p-6">
-                                        <div className="absolute inset-0 map-blur-bg opacity-30"></div>
-                                        <div className="relative z-20 w-full max-w-xs space-y-6">
-                                            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                                                <Loader2 className="animate-spin text-laforet-cyan mx-auto mb-4" size={48} />
-                                                <h3 className="text-white font-bold text-lg mb-2">Analyse du secteur...</h3>
-                                                <div className="w-full bg-gray-700 rounded-full h-2 mb-2 overflow-hidden">
-                                                    <motion.div className="bg-laforet-cyan h-full rounded-full" style={{ width: `${loadingProgress}%` }} />
-                                                </div>
-                                                <div className="text-white/80 text-xs flex flex-col gap-1">
-                                                    <p>Vérification cadastre : {data.zipcode}</p>
-                                                    <p className="font-bold text-white">" {data.street || data.city} "</p>
-                                                    <p className="opacity-70">Croisement des données notariales 2024-2026</p>
+                                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Nombre de Pièces</label>
+                                                <div className="flex justify-center gap-3">
+                                                    {[1,2,3,4,5].map(num => (
+                                                        <button key={num} onClick={() => setData({...data, rooms: num})} className={`w-12 h-12 rounded-lg font-bold text-lg transition-all ${data.rooms == num ? 'bg-laforet-navy text-white shadow-lg scale-110' : 'bg-gray-100 text-gray-600'}`}>
+                                                            {num}
+                                                        </button>
+                                                    ))}
+                                                    <button onClick={() => setData({...data, rooms: 6})} className={`w-12 h-12 rounded-lg font-bold text-lg transition-all ${data.rooms >= 6 ? 'bg-laforet-navy text-white shadow-lg scale-110' : 'bg-gray-100 text-gray-600'}`}>6+</button>
                                                 </div>
                                             </div>
                                         </div>
-                                    </motion.div>
+
+                                        <button onClick={next} disabled={!data.surface} className="mt-auto w-full bg-laforet-navy text-white font-bold h-[55px] rounded-xl disabled:opacity-50 transition-all text-lg shadow-lg">Continuer</button>
+                                     </motion.div>
                                 )}
 
-                                {step === 5 && (
-                                    <motion.div key="step5" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 text-center flex flex-col h-full justify-center">
-                                        <div className="mx-auto bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-bold inline-flex items-center gap-2 mb-2 w-fit">
-                                            <CheckCircle2 size={16} /> Analyse terminée
+                                {step === 3 && ( // Previously Step 2 (Boosters)
+                                    <motion.div key="step3" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="flex flex-col h-full">
+                                        <div className="text-center mb-6">
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Les Atouts</h3>
+                                            <p className="text-sm text-gray-500 mt-1">Valorisez votre bien (+5% à +15%)</p>
                                         </div>
                                         
-                                        <div className="relative p-6 bg-gray-50 rounded-xl border border-gray-200 mx-auto w-full max-w-sm">
-                                            <div className="filter blur-sm select-none opacity-50 space-y-2">
-                                                <div className="h-8 bg-gray-300 w-1/2 mx-auto rounded"></div>
-                                                <div className="h-4 bg-gray-300 w-3/4 mx-auto rounded"></div>
+                                        <div className="flex-1 overflow-y-auto pr-1 pb-4">
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {BoostersList.map(item => (
+                                                    <button key={item} onClick={() => toggleItem('boosters', item)} className={`flex items-center justify-between p-4 rounded-xl border transition-all text-left ${data.boosters.includes(item) ? 'border-green-500 bg-green-50 text-green-800 font-bold shadow-md transform scale-[1.02]' : 'border-gray-100 bg-white text-gray-600'}`}>
+                                                        <span className="text-base">{item}</span>
+                                                        {data.boosters.includes(item) ? <CheckCircle2 size={24} className="text-green-500" /> : <div className="w-6 h-6 rounded-full border border-gray-300 bg-gray-50" />}
+                                                    </button>
+                                                ))}
                                             </div>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="bg-white shadow-lg rounded-full p-4 text-laforet-navy">
-                                                    <Lock size={32} />
-                                                </div>
+                                        </div>
+                                        
+                                        <button onClick={next} className="w-full bg-laforet-navy text-white font-bold h-[55px] rounded-xl transition-all text-lg shadow-lg mt-4 shrink-0">Valider ces atouts</button>
+                                    </motion.div>
+                                )}
+
+                                {step === 4 && ( // Previously Step 3 (Flaws) - Skipping Flaws step in UI flow if simplifying? Prompt says "Conserve 6 étapes". Let's assume step 3 was flaws.
+                                     <motion.div key="step4" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="flex flex-col h-full">
+                                        <div className="text-center mb-6">
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Points d'attention</h3>
+                                            <p className="text-sm text-gray-500 mt-1">Impact sur le prix net vendeur</p>
+                                        </div>
+                                        
+                                        <div className="flex-1 overflow-y-auto pr-1 pb-4">
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {FlawsList.map(item => (
+                                                    <button key={item} onClick={() => toggleItem('flaws', item)} className={`flex items-center justify-between p-4 rounded-xl border transition-all text-left ${data.flaws.includes(item) ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold shadow-md transform scale-[1.02]' : 'border-gray-100 bg-white text-gray-600'}`}>
+                                                        <span className="text-base">{item}</span>
+                                                        {data.flaws.includes(item) ? <AlertCircle size={24} className="text-amber-500" /> : <div className="w-6 h-6 rounded-full border border-gray-300 bg-gray-50" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        <button onClick={next} className="w-full bg-laforet-navy text-white font-bold h-[55px] rounded-xl transition-all text-lg shadow-lg mt-4 shrink-0">Lancer le calcul</button>
+                                    </motion.div>
+                                )}
+
+                                {step === 5 && ( // Contact
+                                    <motion.div key="step5" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col h-full justify-center text-center px-2">
+                                        <div className="mb-8">
+                                            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-bold mb-4">
+                                                <CheckCircle2 size={18} /> Calcul terminé
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-laforet-navy">Votre rapport est prêt</h3>
+                                            <p className="text-gray-500 mt-2">Où pouvons-nous vous l'envoyer ?</p>
+                                        </div>
+                                        
+                                        <div className="space-y-4 w-full">
+                                            <div className="relative">
+                                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20}/>
+                                                <input type="text" placeholder="Nom complet" className="w-full pl-12 p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg font-medium" value={data.name} onChange={(e) => setData({...data, name: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20}/>
+                                                <input type="tel" inputMode="tel" placeholder="Mobile (pour le SMS)" className="w-full pl-12 p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg font-medium" value={data.phone} onChange={(e) => setData({...data, phone: e.target.value})} />
+                                            </div>
+                                            <div className="relative">
+                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</div>
+                                                <input type="email" inputMode="email" placeholder="Email" className="w-full pl-12 p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg font-medium" value={data.email} onChange={(e) => setData({...data, email: e.target.value})} />
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-laforet-navy mb-2">Résultat prêt</h3>
-                                            <p className="text-sm text-gray-500 mb-6 px-4">Où envoyer votre rapport DVF ?</p>
-                                            
-                                            <div className="space-y-4 text-left max-w-sm mx-auto w-full">
-                                                <input type="text" placeholder="Votre nom" className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg" value={data.name} onChange={(e) => setData({...data, name: e.target.value})} />
-                                                <input type="tel" inputMode="tel" placeholder="Mobile (SMS)" className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg" value={data.phone} onChange={(e) => setData({...data, phone: e.target.value})} />
-                                                <input type="email" inputMode="email" placeholder="Email" className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-laforet-navy text-lg" value={data.email} onChange={(e) => setData({...data, email: e.target.value})} />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-3 mt-auto md:mt-0 w-full max-w-sm mx-auto">
-                                            <button 
-                                                onClick={handleSubmit} 
-                                                disabled={!data.name || !data.phone || !data.email || isSubmitting} 
-                                                className="w-full bg-laforet-navy text-white font-bold py-5 rounded-xl shadow-xl hover:bg-laforet-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait text-lg"
-                                            >
-                                                {isSubmitting ? (
-                                                    <>
-                                                        <Loader2 className="animate-spin" size={24} /> Traitement...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Voir mon estimation <ArrowRight size={24} />
-                                                    </>
-                                                )}
-                                            </button>
-                                            
-                                            {/* Trust Signals */}
-                                            <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-2">
-                                                <div className="flex items-center gap-1">
-                                                    <ShieldCheck size={14} className="text-green-600"/>
-                                                    <span>Gratuit</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Users size={14} className="text-laforet-navy"/>
-                                                    <span>Confidentiel</span>
-                                                </div>
-                                            </div>
+                                        <button 
+                                            onClick={handleSubmit} 
+                                            disabled={!data.name || !data.phone || !data.email || isSubmitting} 
+                                            className="w-full bg-laforet-navy text-white font-bold h-[55px] rounded-xl shadow-xl hover:bg-laforet-navy/90 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait text-lg mt-8"
+                                        >
+                                            {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : "Voir mon estimation"}
+                                        </button>
+                                        
+                                        <div className="mt-6 flex justify-center gap-6 text-xs text-gray-400">
+                                            <span className="flex items-center gap-1"><ShieldCheck size={12}/> Données sécurisées</span>
+                                            <span className="flex items-center gap-1"><Lock size={12}/> Pas de spam</span>
                                         </div>
                                     </motion.div>
                                 )}
 
-                                {step === 6 && (
-                                    <motion.div key="step6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-10 bg-white md:rounded-2xl flex flex-col items-center justify-center text-center p-6">
-                                        <Loader2 className="animate-spin text-laforet-cyan mb-6" size={56} />
-                                        <h3 className="text-xl md:text-2xl font-bold text-laforet-navy mb-4 animate-pulse">
-                                            {loadingText}
-                                        </h3>
-                                        <p className="text-gray-500 text-sm">Veuillez ne pas fermer cette page.</p>
-                                        
-                                        <div className="mt-8 w-64 bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                            <motion.div 
-                                                className="bg-laforet-cyan h-full rounded-full"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: "100%" }}
-                                                transition={{ duration: 4 }}
-                                            />
-                                        </div>
+                                {step === 6 && ( // Loader
+                                    <motion.div key="step6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center text-center h-full">
+                                        <Loader2 className="animate-spin text-laforet-cyan mb-6" size={64} />
+                                        <h3 className="text-2xl font-bold text-laforet-navy mb-4 animate-pulse">{loadingText}</h3>
+                                        <p className="text-gray-400 text-sm">Veuillez patienter quelques secondes...</p>
                                     </motion.div>
                                 )}
 
-                                {step === 7 && resultData && (
-                                    <motion.div key="step7" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pb-32 md:pb-0 h-full overflow-y-auto">
+                                {step === 7 && resultData && ( // Result
+                                    <motion.div key="step7" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="pb-32">
                                         
-                                        <div className="text-center mb-6 pt-6 md:pt-0">
-                                            <div className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-3 uppercase tracking-wide">
-                                                Marché : {resultData.neighborhoodLabel}
+                                        <div className="text-center mb-8">
+                                            <div className="inline-block bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold mb-4 uppercase tracking-wide">
+                                                Marché 2026 : {resultData.neighborhoodLabel}
                                             </div>
-                                            <h3 className="text-2xl font-bold text-laforet-navy">Valeur Estimée</h3>
-                                            <p className="text-gray-500 text-sm">Marché 2026 • {data.surface}m²</p>
+                                            <h3 className="text-3xl font-bold text-laforet-navy mb-1">Estimation Finale</h3>
+                                            <p className="text-gray-500 text-sm">Basée sur {data.surface}m² à {data.city || 'Saint-Avertin'}</p>
                                         </div>
 
                                         {/* PRICE CARD */}
-                                        <div className="bg-gradient-to-br from-laforet-navy to-[#2a4d9e] p-8 md:p-6 rounded-3xl md:rounded-2xl text-white text-center shadow-2xl shadow-blue-900/20 mb-8 relative overflow-hidden mx-auto max-w-sm md:max-w-none">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp size={100} /></div>
-                                            <p className="text-blue-200 text-sm font-medium mb-2 uppercase tracking-wider">Fourchette Basse - Haute</p>
-                                            <div className="text-4xl md:text-4xl font-extrabold tracking-tight mb-4 leading-none">
+                                        <div className="bg-gradient-to-br from-laforet-navy to-[#2a4d9e] p-8 rounded-3xl text-white text-center shadow-2xl shadow-blue-900/20 mb-8 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp size={120} /></div>
+                                            <p className="text-blue-200 text-sm font-bold mb-3 uppercase tracking-wider">Fourchette Net Vendeur</p>
+                                            <div className="text-[40px] font-extrabold tracking-tight mb-4 leading-none">
                                                 {Math.round(resultData.low / 1000)}k€ - {Math.round(resultData.high / 1000)}k€
                                             </div>
-                                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-medium">
+                                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-bold border border-white/10">
                                                 <div className="flex gap-0.5">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <Star key={i} size={12} className={i < resultData.confidence ? "fill-yellow-400 text-yellow-400" : "text-blue-200"} />
+                                                        <Star key={i} size={12} className={i < resultData.confidence ? "fill-yellow-400 text-yellow-400" : "text-blue-200/50"} />
                                                     ))}
                                                 </div>
-                                                <span>Confiance : {resultData.confidence}/5</span>
+                                                <span>Indice de Confiance : {resultData.confidence}/5</span>
                                             </div>
                                         </div>
 
-                                        {/* CHART & MAP GRID */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                            {/* Graphique Simplifié */}
-                                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                                <h4 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                                                    <BarChart3 size={16} /> Prix/m²
-                                                </h4>
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <div className="flex justify-between text-xs mb-1">
-                                                            <span className="text-gray-500">Moyenne Secteur</span>
-                                                            <span className="font-bold text-gray-700">~2 850 €</span>
-                                                        </div>
-                                                        <div className="bar-container">
-                                                            <div className="bar-fill bg-gray-300" style={{ width: '60%' }}></div>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex justify-between text-xs mb-1">
-                                                            <span className="text-laforet-navy font-bold">Votre Bien</span>
-                                                            <span className="font-bold text-laforet-navy">{resultData.avgM2.toLocaleString()} €</span>
-                                                        </div>
-                                                        <div className="bar-container">
-                                                            <div className="bar-fill bg-laforet-cyan" style={{ width: '85%' }}></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Fake Map Context */}
-                                            <div className="hidden md:block bg-gray-200 rounded-xl relative h-32 md:h-auto overflow-hidden border border-gray-300">
-                                                <div className="absolute inset-0 map-blur-bg opacity-60"></div>
-                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-laforet-navy text-white p-2 rounded-full shadow-lg z-10 animate-bounce">
-                                                    <MapPin size={24} />
-                                                </div>
-                                                <div className="absolute bottom-2 left-2 bg-white/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-gray-600">
-                                                    3 ventes similaires
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Desktop CTAs */}
-                                        <div className="hidden md:block space-y-3">
-                                            <button className="w-full bg-laforet-navy text-white font-bold py-4 rounded-xl shadow-lg hover:bg-laforet-navy/90 transition-all flex items-center justify-center gap-2">
-                                                <Download size={20} /> Télécharger mon Rapport DVF Complet
-                                            </button>
-                                            <a href="https://calendly.com" target="_blank" className="block w-full bg-white text-laforet-navy border-2 border-laforet-navy font-bold py-3 rounded-xl text-center hover:bg-blue-50 transition-all">
-                                                Affiner ma fourchette avec un expert (Gratuit)
-                                            </a>
-                                        </div>
-
-                                        <p className="text-center text-[10px] text-gray-400 mt-4 leading-snug max-w-sm mx-auto pb-8">
-                                            *Estimation indicative. Ne constitue pas une expertise.
+                                        <p className="text-center text-xs text-gray-400 leading-relaxed px-6 mb-8">
+                                            *Cette fourchette est purement indicative et calculée sur des données déclaratives. Seule une visite technique permet de valider le prix final.
                                         </p>
 
-                                        {/* STICKY MOBILE CTA */}
-                                        <div className="md:hidden fixed bottom-6 left-6 right-6 z-[60]">
-                                            <a href="tel:0246466380" className="w-full bg-[#183C89] text-white font-bold py-4 rounded-full shadow-2xl flex items-center justify-center gap-3 border border-white/20 text-lg">
-                                                <Phone size={20} /> Appeler un expert
+                                        {/* STICKY MOBILE CTA (Step 7 only) */}
+                                        <div className="md:hidden fixed bottom-6 left-6 right-6 z-[100]">
+                                            <a href="tel:0246466380" className="w-full bg-[#183C89] text-white font-bold h-[60px] rounded-full shadow-2xl flex items-center justify-center gap-3 border border-white/20 text-lg animate-pulse">
+                                                <Phone size={24} /> Appeler mon expert
                                             </a>
                                         </div>
-
                                     </motion.div>
                                 )}
 
@@ -978,24 +849,25 @@
         };
 
         const TeamCard = ({ photo, name, role, desc }) => (
-            <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} className="flex gap-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm">
+            <div className="flex gap-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm min-w-[300px] snap-center">
                 <img src={photo} alt={name} className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
                 <div>
                     <h4 className="text-lg font-bold text-laforet-navy leading-none mb-1">{name}</h4>
                     <p className="text-xs font-bold text-laforet-cyan uppercase mb-2">{role}</p>
                     <p className="text-sm text-gray-500 leading-snug line-clamp-3">{desc}</p>
                 </div>
-            </motion.div>
+            </div>
         );
 
         const TeamSection = () => (
-            <section className="hidden md:block py-16 px-4 bg-[#F5F5F7]">
+            <section className="py-12 md:py-16 px-4 bg-[#F5F5F7]">
                 <div className="max-w-7xl mx-auto">
-                    <div className="mb-10 text-center">
-                        <h2 className="text-2xl md:text-4xl font-bold text-laforet-navy mb-3">L'équipe locale</h2>
-                        <p className="text-gray-500 text-sm md:text-base">Des experts de Saint-Avertin à vos côtés.</p>
+                    <div className="mb-8 text-center">
+                        <h2 className="text-2xl md:text-4xl font-bold text-laforet-navy mb-2">L'équipe locale</h2>
+                        <p className="text-gray-500 text-sm">Des experts de Saint-Avertin à vos côtés.</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Mobile: Horizontal Scroll / Desktop: Grid */}
+                    <div className="flex overflow-x-auto gap-4 pb-4 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible no-scrollbar snap-x snap-mandatory px-4 -mx-4 md:px-0 md:mx-0">
                         <TeamCard name="Olivier" role="Franchisé" photo="https://i.postimg.cc/qvCXZQ65/LF2025-26-2.jpg" desc="30 ans de direction dans le bâtiment. Sécurise les dossiers techniques." />
                         <TeamCard name="Vincent" role="Agent Commercial" photo="https://i.postimg.cc/k4h2C3kz/LF2025-18.jpg" desc="Expert en négociation internationale. Maximise le net vendeur." />
                         <TeamCard name="Hélène" role="Agent Commercial" photo="https://i.postimg.cc/PfRDsYj9/LF2025-24-2.jpg" desc="30 ans d'expérience bancaire. Valide les financements acquéreurs." />
@@ -1006,116 +878,73 @@
         );
 
         const LocalInfluenceSection = ({ onCtaClick }) => (
-            <section className="hidden md:block py-16 md:py-24 px-4 bg-[#F5F5F7] overflow-hidden border-t border-gray-100">
+            <section className="py-12 md:py-24 px-4 bg-[#F5F5F7] border-t border-gray-100">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-12 md:mb-16">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-laforet-navy mb-4 leading-tight">
-                            L'Observatoire de l'Immobilier : <br className="hidden md:block"/>Saint-Avertin & Larçay
+                    <div className="text-center mb-8 md:mb-16">
+                        <h2 className="text-2xl md:text-4xl font-extrabold text-laforet-navy mb-3 leading-tight">
+                            Observatoire du Marché
                         </h2>
-                        <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                            Ne vous fiez pas aux estimations nationales. Voici la réalité de notre marché local au 1er janvier 2026.
+                        <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
+                            La réalité du marché local au 1er Janvier 2026.
                         </p>
                     </div>
 
-                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 md:pb-0 md:grid md:grid-cols-3 md:gap-8 no-scrollbar px-2">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-8 md:grid md:grid-cols-3 md:gap-8 no-scrollbar px-4 -mx-4 md:px-0 md:mx-0">
                         
                         {/* CARD 1: PRIX */}
-                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
-                                    <TrendingUp size={24} />
-                                </div>
-                                <h3 className="font-bold text-laforet-navy text-xl">Prix au m² Moyen</h3>
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-blue-50 text-laforet-navy rounded-xl"><TrendingUp size={20} /></div>
+                                <h3 className="font-bold text-laforet-navy text-lg">Prix au m²</h3>
                             </div>
-                            <div className="space-y-4 mb-8 flex-grow">
-                                <div className="flex justify-between items-baseline border-b border-gray-50 pb-3">
+                            <div className="space-y-3 mb-6 flex-grow">
+                                <div className="flex justify-between items-baseline border-b border-gray-50 pb-2">
                                     <span className="text-gray-600 font-medium">Saint-Avertin</span>
-                                    <span className="text-xl font-bold text-laforet-navy">~2 950 €/m²</span>
+                                    <span className="text-lg font-bold text-laforet-navy">~2 950 €</span>
                                 </div>
-                                <div className="flex justify-between items-baseline pt-1">
+                                <div className="flex justify-between items-baseline">
                                     <span className="text-gray-600 font-medium">Larçay</span>
-                                    <span className="text-xl font-bold text-laforet-navy">~2 650 €/m²</span>
+                                    <span className="text-lg font-bold text-laforet-navy">~2 650 €</span>
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
-                                <p className="text-sm text-gray-600 italic leading-snug">
-                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
-                                    "Une stabilité rassurante avec une hausse de +3,7 % sur 5 ans à Larçay."
-                                </p>
                             </div>
                         </div>
 
                         {/* CARD 2: INDICATEURS */}
-                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
-                                    <CalendarClock size={24} />
-                                </div>
-                                <h3 className="font-bold text-laforet-navy text-xl">Indicateurs de Vente</h3>
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-blue-50 text-laforet-navy rounded-xl"><CalendarClock size={20} /></div>
+                                <h3 className="font-bold text-laforet-navy text-lg">Tension</h3>
                             </div>
-                            <div className="space-y-5 mb-8 flex-grow">
-                                <div className="flex justify-between items-center border-b border-gray-50 pb-3">
+                            <div className="space-y-3 mb-6 flex-grow">
+                                <div className="flex justify-between items-center border-b border-gray-50 pb-2">
                                     <span className="text-gray-600 font-medium">Délai moyen</span>
-                                    <span className="text-xl font-bold text-laforet-navy">89 jours</span>
+                                    <span className="text-lg font-bold text-laforet-navy">89j</span>
                                 </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-gray-600 font-medium">Tension</span>
-                                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full uppercase tracking-wide">Forte</span>
-                                    </div>
-                                    <p className="text-sm text-gray-500 mt-2">Comptez 8 acheteurs actifs pour 1 bien disponible.</p>
+                                <div className="flex justify-between items-center pt-2">
+                                    <span className="text-gray-600 font-medium">Demande</span>
+                                    <span className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-1 rounded-full uppercase">Forte</span>
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
-                                <p className="text-sm text-gray-600 italic leading-snug">
-                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
-                                    "Le marché favorise les vendeurs ayant une stratégie de prix cohérente dès le lancement."
-                                </p>
                             </div>
                         </div>
 
                         {/* CARD 3: ACQUEREURS */}
-                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col transition-transform hover:-translate-y-1 duration-300">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-3 bg-blue-50 text-laforet-navy rounded-xl">
-                                    <Users size={24} />
-                                </div>
-                                <h3 className="font-bold text-laforet-navy text-xl">Profil Acquéreurs</h3>
+                        <div className="snap-center flex-shrink-0 w-[85vw] md:w-auto bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 flex flex-col">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2.5 bg-blue-50 text-laforet-navy rounded-xl"><Users size={20} /></div>
+                                <h3 className="font-bold text-laforet-navy text-lg">Acheteurs</h3>
                             </div>
-                            <div className="space-y-5 mb-8 flex-grow">
-                                <div className="border-b border-gray-50 pb-3">
-                                    <span className="block text-gray-600 font-medium mb-1">Cible prioritaire</span>
-                                    <span className="text-lg font-bold text-laforet-navy block">Familles & Cadres</span>
-                                    <span className="text-xs text-gray-400">Revenu médian > 38k€/an</span>
-                                </div>
-                                <div>
-                                    <span className="block text-gray-600 font-medium mb-1">Recherche Top 1</span>
-                                    <span className="text-sm text-gray-700 leading-snug">Maisons 4-6 pièces, jardin & performance énergétique optimisée.</span>
-                                </div>
-                            </div>
-                            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 mt-auto">
-                                <p className="text-sm text-gray-600 italic leading-snug">
-                                    <span className="font-bold text-laforet-cyan not-italic block mb-2 uppercase text-xs tracking-wider">L'avis de l'expert</span>
-                                    "72 % des habitants de Saint-Avertin sont propriétaires de leur résidence principale."
-                                </p>
+                            <div className="space-y-3 mb-6 flex-grow">
+                                <p className="text-sm text-gray-700">Familles & Cadres cherchent maisons 4-6 pièces avec jardin.</p>
+                                <p className="text-xs text-gray-400 mt-2">Revenu médian > 38k€/an</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="mt-12 md:mt-16 text-center max-w-3xl mx-auto px-4">
-                        <button 
-                            onClick={onCtaClick}
-                            className="inline-flex items-center justify-center gap-2 bg-laforet-navy text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:bg-laforet-navy/90 transition-all transform active:scale-95 w-full md:w-auto text-lg"
-                        >
-                            Recevoir mon analyse de marché personnalisée <ArrowRight size={20} />
-                        </button>
                     </div>
                 </div>
             </section>
         );
 
         const GoogleReviewsSection = () => (
-            <section className="hidden md:block py-16 bg-white border-t border-gray-100 relative">
+            <section className="py-12 md:py-16 bg-white border-t border-gray-100 relative">
                 <div className="text-center mb-10 px-6">
                     <h2 className="text-2xl md:text-3xl font-bold text-laforet-navy mb-2">Avis Clients</h2>
                     <div className="flex items-center justify-center gap-2 text-amber-500">
@@ -1157,26 +986,32 @@
             const scrollToForm = () => {
                 const el = document.getElementById('simulator');
                 if(el) {
-                    const offset = 100;
-                    const bodyRect = document.body.getBoundingClientRect().top;
-                    const elementRect = el.getBoundingClientRect().top;
-                    const elementPosition = elementRect - bodyRect;
-                    const offsetPosition = elementPosition - offset;
-                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             };
             
             return (
-                <div className="min-h-screen bg-[#F5F5F7]">
+                <div className="min-h-screen bg-[#F5F5F7] overflow-x-hidden">
                     <Navbar />
                     <Hero onStart={scrollToForm} />
                     <FormEngine />
+                    
+                    {/* Content below fold - visible when scrolling on Step 0 */}
                     <TeamSection />
                     <LocalInfluenceSection onCtaClick={scrollToForm} />
                     <GoogleReviewsSection />
-                    <footer className="bg-white py-8 text-center text-xs text-gray-400 border-t">
-                        <p>&copy; 2026 Laforêt Saint-Avertin. Données DVF mises à jour.</p>
-                        <a href="#" className="underline mt-1 block">Mentions Légales</a>
+                    
+                    <footer className="bg-white py-8 border-t border-gray-100">
+                        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="text-center md:text-left">
+                                <p className="text-xs text-gray-400">&copy; 2026 Laforêt Saint-Avertin (IMMO SUD TOURAINE).</p>
+                                <p className="text-[10px] text-gray-300 mt-0.5">Données DVF mises à jour.</p>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <a href="mentions-legales.html" className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Mentions Légales</a>
+                                <a href="politique-confidentialite.html" className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Politique de Confidentialité</a>
+                            </div>
+                        </div>
                     </footer>
                 </div>
             );
