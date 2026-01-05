@@ -154,7 +154,7 @@
             Phone, MapPin, Home, Building2, ArrowRight, CheckCircle2, 
             Users, Star, TrendingUp, CalendarClock, ChevronRight, 
             Database, Search, Check, AlertCircle, Loader2, Lock, FileBarChart,
-            Download, BarChart3, ShieldCheck, FileText, Smartphone
+            Download, BarChart3, ShieldCheck, FileText, Smartphone, X
         } from 'lucide-react';
 
         // --- DATA ---
@@ -192,6 +192,38 @@
         ];
 
         // --- COMPONENTS ---
+        
+        // MODAL COMPONENT
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                    <div 
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+                        onClick={onClose}
+                    />
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative z-10 flex flex-col"
+                    >
+                        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-20 shrink-0">
+                            <h3 className="text-xl font-bold text-laforet-navy">{title}</h3>
+                            <button 
+                                onClick={onClose} 
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-900"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6 md:p-8 text-gray-700 space-y-6 text-sm md:text-base leading-relaxed overflow-y-auto">
+                            {children}
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
 
         const Navbar = () => (
             <motion.nav 
@@ -983,6 +1015,9 @@
         );
 
         const App = () => {
+            const [showLegal, setShowLegal] = useState(false);
+            const [showPrivacy, setShowPrivacy] = useState(false);
+            
             const scrollToForm = () => {
                 const el = document.getElementById('simulator');
                 if(el) {
@@ -991,7 +1026,7 @@
             };
             
             return (
-                <div className="min-h-screen bg-[#F5F5F7] overflow-x-hidden">
+                <div className="min-h-screen bg-[#F5F5F7] overflow-x-hidden relative">
                     <Navbar />
                     <Hero onStart={scrollToForm} />
                     <FormEngine />
@@ -1007,12 +1042,68 @@
                                 <p className="text-xs text-gray-400">&copy; 2026 Laforêt Saint-Avertin (IMMO SUD TOURAINE).</p>
                                 <p className="text-[10px] text-gray-300 mt-0.5">Données DVF mises à jour.</p>
                             </div>
-                            <div className="flex items-center gap-6">
-                                <a href="mentions-legales.html" className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Mentions Légales</a>
-                                <a href="politique-confidentialite.html" className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Politique de Confidentialité</a>
+                            <div className="flex items-center justify-center gap-6">
+                                <button onClick={() => setShowLegal(true)} className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Mentions Légales</button>
+                                <button onClick={() => setShowPrivacy(true)} className="text-xs text-gray-400 hover:text-laforet-navy transition-colors">Politique de Confidentialité</button>
                             </div>
                         </div>
                     </footer>
+
+                    <AnimatePresence>
+                        {showLegal && (
+                            <Modal isOpen={showLegal} onClose={() => setShowLegal(false)} title="Mentions Légales">
+                                <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">1. Éditeur du site</h4>
+                                    <div className="space-y-1 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <p><strong>Société :</strong> IMMO SUD TOURAINE (SAS au capital de 10 000 €)</p>
+                                        <p><strong>Siège social :</strong> 35 Rue du Général Mocquery, 37550 Saint-Avertin</p>
+                                        <p><strong>SIRET :</strong> 947 858 163 00019 | <strong>RCS :</strong> Tours 947 858 163</p>
+                                        <p><strong>Directeur de publication :</strong> M. Olivier PETIT</p>
+                                        <p><strong>Contact :</strong> saint-avertin@laforet.com</p>
+                                    </div>
+                                </section>
+                                <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">2. Activité réglementée</h4>
+                                    <div className="space-y-1">
+                                        <p><strong>Titre professionnel :</strong> Agent Immobilier</p>
+                                        <p><strong>Carte Pro :</strong> CPI 3701 2023 0000 00004 (CCI Indre-et-Loire)</p>
+                                        <p><strong>Assurance RCP :</strong> GALIAN - SMABTP (Contrat n° K00448B9970000)</p>
+                                        <p><strong>Garantie Financière :</strong> GALIAN Assurances</p>
+                                    </div>
+                                </section>
+                                <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">3. Hébergement</h4>
+                                    <p><strong>Netlify, Inc.</strong><br/>2325 3rd Street, Suite 296, San Francisco, California 94107, USA.</p>
+                                </section>
+                            </Modal>
+                        )}
+                        {showPrivacy && (
+                            <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Politique de Confidentialité (RGPD)">
+                                 <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">1. Collecte et Finalité</h4>
+                                    <p className="mb-2">Les informations recueillies sur ce formulaire sont enregistrées dans un fichier informatisé par <strong>IMMO SUD TOURAINE (M. Olivier PETIT)</strong>.</p>
+                                    <p>Elles sont destinées exclusivement à :</p>
+                                    <ul className="list-disc pl-5 mt-2 space-y-1 marker:text-laforet-cyan">
+                                        <li>L'élaboration de votre estimation immobilière personnalisée.</li>
+                                        <li>L'envoi de la fiche analytique du marché local.</li>
+                                        <li>La prise de contact commerciale par l'agence Laforêt Saint-Avertin.</li>
+                                    </ul>
+                                </section>
+                                <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">2. Durée de conservation</h4>
+                                    <p>Vos données sont conservées pendant une durée de <strong>3 ans</strong> à compter de votre dernier contact avec notre agence.</p>
+                                </section>
+                                <section>
+                                    <h4 className="font-bold text-gray-900 mb-2 text-lg">3. Vos Droits</h4>
+                                    <p className="mb-2">Conformément au Règlement Général sur la Protection des Données (RGPD), vous pouvez exercer votre droit d'accès, de rectification, d'effacement et d'opposition aux données vous concernant.</p>
+                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-900">
+                                        <p className="font-bold text-sm">Contact DPO / Exercice des droits :</p>
+                                        <a href="mailto:saint-avertin@laforet.com" className="text-laforet-navy font-bold underline">saint-avertin@laforet.com</a>
+                                    </div>
+                                </section>
+                            </Modal>
+                        )}
+                    </AnimatePresence>
                 </div>
             );
         };
