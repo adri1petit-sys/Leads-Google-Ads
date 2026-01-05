@@ -484,13 +484,18 @@
 
             const next = () => {
                 setStep(s => s + 1);
-                // Scroll top on next step for better UX
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Scroll top ONLY on mobile (< 768px) to avoid jarring jump on desktop
+                if (window.innerWidth < 768) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             };
             
             const prev = () => {
                 if (step > 0) setStep(s => s - 1);
-                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                 // Scroll top ONLY on mobile (< 768px)
+                 if (window.innerWidth < 768) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                 }
             };
 
             // --- ALGORITHME D'ESTIMATION (Logic preserved) ---
@@ -603,8 +608,10 @@
                         const results = calculateEstimation();
                         setResultData(results);
                         setStep(7);
-                        // Results page: ensure top of page
-                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        // Results page: ensure top of page ONLY on mobile (< 768px)
+                        if (window.innerWidth < 768) {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
                     }, 3500);
 
                     return () => {
