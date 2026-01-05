@@ -57,11 +57,22 @@
                     animation: {
                         'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'marquee': 'marquee 40s linear infinite',
+                        'breathing-glow': 'breathing-glow 3s ease-in-out infinite',
                     },
                     keyframes: {
                         marquee: {
                             '0%': { transform: 'translateX(0%)' },
                             '100%': { transform: 'translateX(-50%)' },
+                        },
+                        'breathing-glow': {
+                            '0%, 100%': { 
+                                boxShadow: '0 4px 15px rgba(24, 60, 137, 0.3)',
+                                transform: 'scale(1)' 
+                            },
+                            '50%': { 
+                                boxShadow: '0 0 25px rgba(0, 175, 237, 0.6), 0 0 10px rgba(24, 60, 137, 0.2)',
+                                transform: 'scale(1.02)' 
+                            },
                         }
                     }
                 }
@@ -145,21 +156,35 @@
         </div>
     </div>
 
-    <!-- Hidden Netlify Form -->
-    <form name="estimation-dvf" method="POST" netlify data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <!-- 
+      SHADOW FORM NETLIFY 
+      Ce formulaire est invisible mais détecté par le bot de build Netlify.
+      Il doit contenir EXACTEMENT les mêmes 'name' que ceux envoyés par React.
+    -->
+    <form name="estimation-dvf" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+        <!-- Netlify System Fields -->
         <input type="hidden" name="form-name" value="estimation-dvf" />
         <input type="hidden" name="bot-field" />
-        <input type="text" name="address" />
-        <input type="text" name="city" />
-        <input type="text" name="zipcode" />
-        <input type="text" name="type" />
-        <input type="text" name="surface" />
-        <input type="text" name="rooms" />
-        <input type="text" name="boosters" />
-        <input type="text" name="flaws" />
+        
+        <!-- Contact Identity -->
         <input type="text" name="name" />
         <input type="tel" name="phone" />
         <input type="email" name="email" />
+
+        <!-- Property Location -->
+        <input type="text" name="address" />
+        <input type="text" name="city" />
+        <input type="text" name="zipcode" />
+        <input type="text" name="street" />
+
+        <!-- Property Specs -->
+        <input type="text" name="type" />
+        <input type="text" name="surface" />
+        <input type="text" name="rooms" />
+
+        <!-- Features (Arrays converted to strings) -->
+        <textarea name="boosters"></textarea>
+        <textarea name="flaws"></textarea>
     </form>
 
     <script type="text/babel" data-type="module">
@@ -590,16 +615,40 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
-                const encode = (data) => Object.keys(data).map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key])).join("&");
+                
+                // Prepare payload for Netlify (x-www-form-urlencoded)
+                const payload = {
+                    "form-name": "estimation-dvf",
+                    ...data,
+                    // Flatten arrays to strings to ensure they are readable in Netlify Forms UI
+                    boosters: data.boosters.join(', '),
+                    flaws: data.flaws.join(', ')
+                };
+
+                const encode = (data) => {
+                    return Object.keys(data)
+                        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+                        .join("&");
+                };
+
                 fetch("/", {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: encode({ "form-name": "estimation-dvf", ...data })
-                }).then(() => {
+                    body: encode(payload)
+                })
+                .then(() => {
                     if (window.gtag) window.gtag('event', 'conversion', { 'send_to': 'AW-11283228533/la_CCNLGi9sbEPXOoYQq' });
-                }).catch(err => console.error("Erreur envoi formulaire:", err));
-                setIsSubmitting(false);
-                setStep(6); 
+                    // IMPORTANT: Move to next step only after successful submission or at least after the attempt
+                    setStep(6); 
+                })
+                .catch(err => {
+                    console.error("Erreur envoi formulaire:", err);
+                    // Fallback: move to next step anyway so user is not blocked
+                    setStep(6);
+                })
+                .finally(() => {
+                    setIsSubmitting(false);
+                });
             };
 
             const BoostersList = ["Cuisine récente", "Terrasse / Balcon", "Jardin sans vis-à-vis", "Garage / Parking", "Calme absolu", "Proche Commerces", "DPE A/B/C"];
@@ -921,8 +970,8 @@
                                         </p>
 
                                         {/* STICKY MOBILE CTA (Step 7 only) */}
-                                        <div className="md:hidden fixed bottom-6 left-6 right-6 z-[100]">
-                                            <a href="tel:0246466380" className="w-full bg-[#183C89] text-white font-bold h-[60px] rounded-full shadow-2xl flex items-center justify-center gap-3 border border-white/20 text-lg animate-pulse">
+                                        <div className="md:hidden fixed bottom-6 left-4 right-4 z-[100] pb-[env(safe-area-inset-bottom)]">
+                                            <a href="tel:0246466380" className="w-full bg-[#183C89] text-white font-bold h-[64px] rounded-full shadow-2xl flex items-center justify-center gap-3 border border-white/20 text-lg animate-breathing-glow motion-reduce:animate-none hover:scale-105 transition-transform">
                                                 <Phone size={24} /> Appeler mon expert
                                             </a>
                                         </div>
