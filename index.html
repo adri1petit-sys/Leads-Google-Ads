@@ -157,34 +157,36 @@
     </div>
 
     <!-- 
-      SHADOW FORM NETLIFY 
-      Ce formulaire est invisible mais détecté par le bot de build Netlify.
-      Il doit contenir EXACTEMENT les mêmes 'name' que ceux envoyés par React.
+      NETLIFY SHADOW FORM 
+      Ce formulaire HTML statique est détecté par les bots Netlify au build.
+      Il permet d'activer la feature "Forms" et de recevoir les soumissions POST.
     -->
-    <form name="estimation-dvf" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-        <!-- Netlify System Fields -->
-        <input type="hidden" name="form-name" value="estimation-dvf" />
+    <form name="estimation" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+        <input type="hidden" name="form-name" value="estimation" />
         <input type="hidden" name="bot-field" />
         
-        <!-- Contact Identity -->
+        <!-- Contact Info -->
         <input type="text" name="name" />
         <input type="tel" name="phone" />
         <input type="email" name="email" />
 
-        <!-- Property Location -->
+        <!-- Property Info -->
         <input type="text" name="address" />
         <input type="text" name="city" />
         <input type="text" name="zipcode" />
         <input type="text" name="street" />
-
-        <!-- Property Specs -->
         <input type="text" name="type" />
         <input type="text" name="surface" />
         <input type="text" name="rooms" />
 
-        <!-- Features (Arrays converted to strings) -->
+        <!-- Arrays (converted to strings) -->
         <textarea name="boosters"></textarea>
         <textarea name="flaws"></textarea>
+
+        <!-- Estimation Results -->
+        <input type="text" name="estimation_low" />
+        <input type="text" name="estimation_high" />
+        <input type="text" name="confidence" />
     </form>
 
     <script type="text/babel" data-type="module">
@@ -612,43 +614,51 @@
                 }
             }, [step]);
 
-            const handleSubmit = (e) => {
+            const handleSubmit = async (e) => {
                 e.preventDefault();
                 setIsSubmitting(true);
                 
-                // Prepare payload for Netlify (x-www-form-urlencoded)
+                // 1. Calculate results immediately to send them to Netlify
+                const results = calculateEstimation();
+                // Store results for step 7 (optional here but good for consistency if we wanted to skip step 6)
+                // setResultData(results); // Step 6 effect will handle this too, keeping it simple to "not break anything"
+
+                // 2. Prepare payload for Netlify (x-www-form-urlencoded)
                 const payload = {
-                    "form-name": "estimation-dvf",
+                    "form-name": "estimation",
+                    "bot-field": "",
                     ...data,
-                    // Flatten arrays to strings to ensure they are readable in Netlify Forms UI
+                    // Flatten arrays to strings
                     boosters: data.boosters.join(', '),
-                    flaws: data.flaws.join(', ')
+                    flaws: data.flaws.join(', '),
+                    // Add calculated results
+                    estimation_low: results.low,
+                    estimation_high: results.high,
+                    confidence: results.confidence
                 };
 
                 const encode = (data) => {
-                    return Object.keys(data)
-                        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
-                        .join("&");
+                    return new URLSearchParams(data).toString();
                 };
 
-                fetch("/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: encode(payload)
-                })
-                .then(() => {
+                try {
+                    await fetch("/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: encode(payload)
+                    });
+                    
                     if (window.gtag) window.gtag('event', 'conversion', { 'send_to': 'AW-11283228533/la_CCNLGi9sbEPXOoYQq' });
-                    // IMPORTANT: Move to next step only after successful submission or at least after the attempt
+                    
+                    // 3. Move to next step (Loader -> Result) AFTER successful submit attempt
                     setStep(6); 
-                })
-                .catch(err => {
+                } catch (err) {
                     console.error("Erreur envoi formulaire:", err);
                     // Fallback: move to next step anyway so user is not blocked
                     setStep(6);
-                })
-                .finally(() => {
+                } finally {
                     setIsSubmitting(false);
-                });
+                }
             };
 
             const BoostersList = ["Cuisine récente", "Terrasse / Balcon", "Jardin sans vis-à-vis", "Garage / Parking", "Calme absolu", "Proche Commerces", "DPE A/B/C"];
