@@ -28,6 +28,23 @@
       gtag('config', 'AW-11283228533');
     </script>
 
+    <!-- META PIXEL BASE CODE -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    // Le Pixel ID sera initialisé dans le composant React pour synchroniser avec l'API CAPI
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=REPLACE_WITH_YOUR_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,6 +216,65 @@
             Database, Search, Check, AlertCircle, Loader2, Lock, FileBarChart,
             Download, BarChart3, ShieldCheck, FileText, Smartphone, X, ArrowLeft
         } from 'lucide-react';
+
+        // --- META API CONFIGURATION ---
+        // ⚠️ REMPLACEZ "REPLACE_WITH_YOUR_PIXEL_ID" PAR VOTRE VRAI ID DE PIXEL (ex: 123456789)
+        const FB_PIXEL_ID = "REPLACE_WITH_YOUR_PIXEL_ID"; 
+        const FB_ACCESS_TOKEN = "EAAKr2g6mZCz8BQVGZBZBWph4t4slCkoWqmEAZBZCIzn6C2h6jjM5Y7xWwnEZCOcRYSJVWZB6akQKPgsb5rPcogcQUcgzTkAi4AjDLbUhvQpQdD5NBLLW4mHLS9ZBZCskMzegh6ZBxQwbKrQOqD3OiNB97eRiqOxN4krnGbjaKF62eweEhRCOV94kLYPtXg34lARgZDZD";
+        
+        // --- HELPER: SHA-256 HASHING FOR CAPI ---
+        async function sha256(message) {
+            if (!message) return null;
+            const msgBuffer = new TextEncoder().encode(message.trim().toLowerCase());
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- HELPER: SEND DUAL EVENT (PIXEL + CAPI) ---
+        async function trackMetaEvent(eventName, userData = {}, customData = {}) {
+            const eventId = 'evt-' + Date.now() + '-' + Math.floor(Math.random() * 1000); // Unique ID for deduplication
+
+            // 1. Browser Pixel Track
+            if (window.fbq) {
+                window.fbq('track', eventName, customData, { eventID: eventId });
+            }
+
+            // 2. Server CAPI Track (Simulated Client-Side)
+            try {
+                const hashedEmail = userData.email ? await sha256(userData.email) : null;
+                const hashedPhone = userData.phone ? await sha256(userData.phone.replace(/[^0-9]/g, '')) : null;
+                // Simple first name/last name logic if provided
+                const hashedFn = userData.name ? await sha256(userData.name.split(' ')[0]) : null;
+
+                const payload = {
+                    data: [{
+                        event_name: eventName,
+                        event_time: Math.floor(Date.now() / 1000),
+                        event_id: eventId,
+                        action_source: "website",
+                        event_source_url: window.location.href,
+                        user_data: {
+                            em: hashedEmail ? [hashedEmail] : undefined,
+                            ph: hashedPhone ? [hashedPhone] : undefined,
+                            fn: hashedFn ? [hashedFn] : undefined,
+                            client_user_agent: navigator.userAgent
+                        },
+                        custom_data: customData
+                    }]
+                };
+
+                // Envoi silencieux vers l'API Graph (Fire & Forget)
+                await fetch(`https://graph.facebook.com/v18.0/${FB_PIXEL_ID}/events?access_token=${FB_ACCESS_TOKEN}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log(`Meta Event ${eventName} sent (Pixel + CAPI)`);
+            } catch (e) {
+                console.warn("Meta CAPI Error", e);
+            }
+        }
 
         // --- DATA ---
         const googleReviews = [
@@ -459,6 +535,17 @@
             const [loadingText, setLoadingText] = useState("Connexion serveur...");
             const [resultData, setResultData] = useState(null);
 
+            // INITIALIZE PIXEL ON MOUNT
+            useEffect(() => {
+                if(window.fbq) {
+                    // Init Pixel with ID if not already done in HTML (using variable here if cleaner, 
+                    // but HTML script is standard. We just trigger ViewContent here).
+                    window.fbq('init', FB_PIXEL_ID);
+                    window.fbq('track', 'PageView');
+                    trackMetaEvent('ViewContent'); // Fire CAPI + Pixel ViewContent
+                }
+            }, []);
+
             const handleAddressSelect = (addressData) => {
                 setData({
                     ...data,
@@ -649,6 +736,19 @@
                 };
 
                 try {
+                    // TRACKING FACEBOOK CAPI (Lead / Inscription Terminée)
+                    // On utilise 'CompleteRegistration' car le prompt le mentionnait, mais 'Lead' est aussi adapté.
+                    await trackMetaEvent('CompleteRegistration', {
+                        email: data.email,
+                        phone: data.phone,
+                        name: data.name
+                    }, {
+                        currency: "EUR",
+                        value: results.avgM2 * parseInt(data.surface), // Valeur estimée approx
+                        content_name: "Estimation Immobilière"
+                    });
+
+                    // Netlify POST
                     await fetch("/", {
                         method: "POST",
                         headers: { "Content-Type": "application/x-www-form-urlencoded" },
